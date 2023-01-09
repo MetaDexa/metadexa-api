@@ -10,7 +10,7 @@ export default function compareRoutes(
 	zeroXQuote: Result<AggregatorQuote, RequestError>,
 	oneInchQuote: Result<AggregatorQuote, RequestError>,
 ): Result<AggregatorQuote, RequestError> {
-	if (zeroXQuote.ok) return zeroXQuote;
+	if (zeroXQuote.ok && oneInchQuote.err) return zeroXQuote;
 
 	if (oneInchQuote.ok && zeroXQuote.err) return oneInchQuote;
 
