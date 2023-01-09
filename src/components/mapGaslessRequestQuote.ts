@@ -23,7 +23,7 @@ export default function mapToRequestGaslessQuote(
 		allowUnknown: true, // ignore unknown props
 		stripUnknown: true, // remove unknown props
 	};
-	const { error, value } = schema.validate(request.query, options);
+	const { error } = schema.validate(request.query, options);
 	if (error) {
 		return new Err({
 			statusCode: 400,

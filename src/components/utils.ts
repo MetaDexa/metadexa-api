@@ -1,7 +1,11 @@
 /** @format */
 
+import { GAS_MARGIN } from './../constants/constants';
+/** @format */
+
 import Web3 from 'web3';
 import { Err, Ok, Result } from 'ts-results';
+import BigNumber from 'bignumber.js';
 import { ResultQuote } from '../interfaces/ResultQuote';
 import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
 import { CompositeQuote } from '../interfaces/CompositeQuote';
@@ -15,7 +19,6 @@ import {
 import { ForwarderRequest } from '../interfaces/ForwarderRequest';
 import validatorSign from './RelayerSignature';
 import { RequestError } from '../interfaces/RequestError';
-import BigNumber from 'bignumber.js';
 
 /** @format */
 
@@ -642,8 +645,12 @@ export default async function simulateTransaction(
 		if (!paymentFeeValid) {
 			throw new Error('Cannot accept the token as a relayer fee');
 		}
-
-		const ethBalanceValid = ethBalanceDiff.gte(web3.utils.toBN(gasFees));
+		const ethBalanceValid = ethBalanceDiff.gte(
+			web3.utils
+				.toBN(gasFees)
+				.mul(web3.utils.toBN(GAS_MARGIN))
+				.div(web3.utils.toBN(100)),
+		);
 		if (!ethBalanceValid) {
 			throw new Error('Cannot swap the token for native currency');
 		}

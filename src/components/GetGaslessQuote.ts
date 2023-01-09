@@ -2,6 +2,7 @@
 
 import Web3 from 'web3';
 import { Ok, Err, Result } from 'ts-results';
+import { WHITELISTED_TOKENS, GAS_OVERHEAD } from '../constants/constants';
 import { ResultQuote } from '../interfaces/ResultQuote';
 import { RequestError } from '../interfaces/RequestError';
 import {
@@ -20,7 +21,6 @@ import simulateTransaction, {
 	buildGaslessAggregatorCallData,
 	getTransactionData,
 } from './utils';
-import { GAS_OVERHEAD } from '../constants/constants';
 
 async function getGasPrice(chainId: number): Promise<Result<string, Error>> {
 	const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
@@ -30,6 +30,26 @@ async function getGasPrice(chainId: number): Promise<Result<string, Error>> {
 	} catch (error) {
 		return new Err(new Error(`Gas price failed: ${error.message}`));
 	}
+}
+
+function getPaymentFees(
+	buyTokenAddress: string,
+	sellTokenAddress: string,
+	paymentFees: string,
+	chainId: number,
+): string {
+	const tokens = WHITELISTED_TOKENS.filter(
+		(object) => object.chainId === chainId,
+	).map((object) => object.tokens);
+	const whitelistedTokens =
+		tokens.length > 0 ? tokens[0].map((token) => token.toLowerCase()) : [];
+
+	if (
+		whitelistedTokens.includes(buyTokenAddress.toLowerCase()) ||
+		whitelistedTokens.includes(sellTokenAddress.toLowerCase()) // dodaj proverka za chain;
+	)
+		return '0';
+	return paymentFees;
 }
 
 async function getValidatorGaslessQuote(
@@ -157,7 +177,12 @@ async function getValidatorGaslessQuote(
 	return new Ok({
 		estimatedGas: resultQuote.estimatedGas,
 		paymentTokenAddress: paymentToken,
-		paymentFees,
+		paymentFees: getPaymentFees(
+			request.buyTokenAddress,
+			request.sellTokenAddress,
+			paymentFees,
+			request.chainId,
+		),
 		buyTokenAddress: resultQuote.buyTokenAddress,
 		buyAmount: resultQuote.buyAmount,
 		sellTokenAddress: resultQuote.sellTokenAddress,
