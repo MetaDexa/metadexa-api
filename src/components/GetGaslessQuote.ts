@@ -36,26 +36,6 @@ async function getGasPrice(chainId: number): Promise<Result<string, Error>> {
 	}
 }
 
-function getPaymentFees(
-	buyTokenAddress: string,
-	sellTokenAddress: string,
-	paymentFees: string,
-	chainId: number,
-): string {
-	const tokens = WHITELISTED_TOKENS.filter(
-		(object) => object.chainId === chainId,
-	).map((object) => object.tokens);
-	const whitelistedTokens =
-		tokens.length > 0 ? tokens[0].map((token) => token.toLowerCase()) : [];
-
-	if (
-		whitelistedTokens.includes(buyTokenAddress.toLowerCase()) ||
-		whitelistedTokens.includes(sellTokenAddress.toLowerCase()) // dodaj proverka za chain;
-	)
-		return '0';
-	return paymentFees;
-}
-
 async function getValidatorGaslessQuote(
 	request: RequestQuote,
 	aggregatorQuote: AggregatorQuote,
@@ -181,12 +161,7 @@ async function getValidatorGaslessQuote(
 	return new Ok({
 		estimatedGas: resultQuote.estimatedGas,
 		paymentTokenAddress: paymentToken,
-		paymentFees: getPaymentFees(
-			request.buyTokenAddress,
-			request.sellTokenAddress,
-			paymentFees,
-			request.chainId,
-		),
+		paymentFees,
 		buyTokenAddress: resultQuote.buyTokenAddress,
 		buyAmount: resultQuote.buyAmount,
 		sellTokenAddress: resultQuote.sellTokenAddress,
@@ -203,6 +178,10 @@ function getGasFees(
 ) {
 	const web3 = new Web3();
 	if (FREE_SWAPS_CAMPAIGN[request.chainId]) return web3.utils.toBN('0');
+
+	// todo: add check for whitelisted tokens here
+
+	// todo: add check for whitelisted users here
 
 	return web3.utils
 		.toBN(gasPrice.unwrap())
