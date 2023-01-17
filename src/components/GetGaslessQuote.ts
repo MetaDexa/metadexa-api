@@ -233,6 +233,6 @@ export default async function getGaslessQuote(
 		aggregatorQuote,
 		resultQuote,
 		paymentToken,
-		gasFees.toString(),
+		'0', //gasFees.toString(),
 	);
 }
