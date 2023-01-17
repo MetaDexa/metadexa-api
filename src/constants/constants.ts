@@ -5,6 +5,11 @@ export const GAS_OVERHEAD = '130000';
 
 export const GAS_MARGIN = 95;
 
+
+export const FREE_SWAPS_CAMPAIGN = {
+	'137': true,
+}
+
 export const WHITELISTED_TOKENS = [
 	{
 		chainId: 137,
@@ -15,6 +20,7 @@ export const WHITELISTED_TOKENS = [
 	},
 ];
 
+// idea for future purposes;
 // export const WHITELISTED_ADDRESSES = [
 // 	{
 // 		chainId: '',

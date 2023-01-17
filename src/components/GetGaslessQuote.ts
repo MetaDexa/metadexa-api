@@ -2,7 +2,11 @@
 
 import Web3 from 'web3';
 import { Ok, Err, Result } from 'ts-results';
-import { WHITELISTED_TOKENS, GAS_OVERHEAD } from '../constants/constants';
+import {
+	WHITELISTED_TOKENS,
+	GAS_OVERHEAD,
+	FREE_SWAPS_CAMPAIGN,
+} from '../constants/constants';
 import { ResultQuote } from '../interfaces/ResultQuote';
 import { RequestError } from '../interfaces/RequestError';
 import {
@@ -192,6 +196,19 @@ async function getValidatorGaslessQuote(
 	});
 }
 
+function getGasFees(
+	request: RequestQuote,
+	gasPrice: any,
+	estimatedGas: number,
+) {
+	const web3 = new Web3();
+	if (FREE_SWAPS_CAMPAIGN[request.chainId]) return web3.utils.toBN('0');
+
+	return web3.utils
+		.toBN(gasPrice.unwrap())
+		.mul(web3.utils.toBN(estimatedGas).add(web3.utils.toBN(GAS_OVERHEAD)));
+}
+
 export default async function getGaslessQuote(
 	request: RequestQuote,
 ): Promise<Result<ResultGaslessQuote, RequestError>> {
@@ -219,10 +236,7 @@ export default async function getGaslessQuote(
 		? resultQuote.tx.gas
 		: resultQuote.estimatedGas;
 
-	const web3 = new Web3();
-	const gasFees = web3.utils
-		.toBN(gasPrice.unwrap())
-		.mul(web3.utils.toBN(estimatedGas).add(web3.utils.toBN(GAS_OVERHEAD)));
+	const gasFees = getGasFees(request, gasPrice, estimatedGas);
 
 	console.log(`Estimated gas fees: ${gasFees}`);
 
@@ -233,6 +247,6 @@ export default async function getGaslessQuote(
 		aggregatorQuote,
 		resultQuote,
 		paymentToken,
-		'0', //gasFees.toString(),
+		gasFees.toString(),
 	);
 }
