@@ -58,6 +58,9 @@ In the current repository, there is a simple NodeJS server which serves as a tra
 }
 ```
 
+## Swagger Documentation
+https://app.swaggerhub.com/apis/ElFuerte90/MetaDexa-API/1.0
+
 ## Contributing 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
