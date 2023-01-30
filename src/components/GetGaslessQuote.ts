@@ -45,9 +45,10 @@ async function getValidatorGaslessQuote(
 ): Promise<Result<ResultGaslessQuote, RequestError>> {
 	let paymentFees: string;
 	let aggrQuote: CompositeQuote;
+	paymentFees = gasFees;
 	if (paymentToken === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
 		paymentFees = gasFees;
-	} else {
+	} else if (gasFees !== '0') {
 		const paymentTokenQuote: RequestQuote = {
 			chainId: request.chainId,
 			fromAddress: '0x0000000000000000000000000000000000000000',
@@ -198,7 +199,6 @@ export default async function getGaslessQuote(
 	if (data.err) {
 		return data;
 	}
-
 	const { resultQuote } = data.unwrap();
 	const { aggregatorQuote } = data.unwrap();
 	const gasPrice = resultQuote.tx?.gasPrice
