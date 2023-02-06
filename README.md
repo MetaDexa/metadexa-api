@@ -18,12 +18,6 @@ In the current repository, there is a simple NodeJS server which serves as a tra
 
 ## Methods
 
-- GET `/` - Returns welcome message
-  - Response example: 
-```javascript
-{"message": "hello"}
-```
-
 - GET `/v1.0/{chainId}/getQuote` - Fetches the best aggregated quotes for given trading pair
   - Request - example: 
   https://api.metadexa.io/v1.0/137/getQuote?buyTokenAddress=0x14Af1F2f02DCcB1e43402339099A05a5E363b83c&skipValidation=true&sellTokenAmount=10000000&fromAddress=0xe26F8f8A14251425Dd4E7f59f14eE5C0c2568956&sellTokenAddress=0xc2132D05D31c914a87C6611C10748AEb04B58e8F&slippage=0.005
