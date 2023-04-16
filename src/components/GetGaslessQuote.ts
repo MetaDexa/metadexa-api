@@ -71,6 +71,8 @@ async function getValidatorGaslessQuote(
 		}
 		aggrQuote = exactOutputQuote.unwrap();
 		paymentFees = aggrQuote.resultQuote.sellAmount;
+	} else if (gasFees === '0') {
+		aggrQuote.aggregatorQuote = aggregatorQuote;
 	}
 
 	if (request.skipValidation) {
@@ -97,6 +99,7 @@ async function getValidatorGaslessQuote(
 		paymentToken,
 		paymentFees,
 		signer,
+		request.chainId,
 	);
 
 	if (aggregatorCallData.err) {

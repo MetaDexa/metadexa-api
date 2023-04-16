@@ -74,6 +74,7 @@ export default async function getZeroXQuote(
 		1: 'api.0x.org',
 		137: 'polygon.api.0x.org',
 		10: 'optimism.api.0x.org',
+		42161: 'arbitrum.api.0x.org',
 	};
 
 	try {
