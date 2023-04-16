@@ -183,6 +183,7 @@ export function buildGaslessAggregatorCallData(
 	paymentToken: string,
 	paymentFees: string,
 	signer: string,
+	chainId: number,
 ): Result<string, RequestError> {
 	const web3 = new Web3();
 
@@ -257,7 +258,8 @@ export function buildGaslessAggregatorCallData(
 		const aggregator = betterRoute.to;
 
 		const aggregatorData = betterRoute.data;
-		const adapterId = 'GaslessSwap';
+		const adapterId =
+			chainId === 137 ? 'GaslessSwap' : 'GaslessSwapAdapter';
 		const adapterData = web3.eth.abi.encodeParameter(
 			'tuple(address,address,uint256,uint256,address,uint256,address,address,bytes)',
 			[
@@ -410,6 +412,7 @@ export default async function simulateTransaction(
 			paymentTokenAddress,
 			paymentFees,
 			MULTICALL_ADDRESS[chainId],
+			chainId,
 		);
 
 		// build and sign forwarder request
