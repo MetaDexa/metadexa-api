@@ -36,6 +36,7 @@ async function getGasPrice(chainId: number): Promise<Result<string, Error>> {
 	}
 }
 
+// todo: add suppport for affiliate
 async function getValidatorGaslessQuote(
 	request: RequestQuote,
 	aggregatorQuote: AggregatorQuote,
@@ -59,7 +60,7 @@ async function getValidatorGaslessQuote(
 			recipient: undefined,
 			slippage: '0',
 			affiliate: undefined,
-			affiliateFee: undefined,
+			affiliateFee: undefined, // todo: add support for this
 			skipValidation: true,
 			signaturePermitData: undefined,
 		};
@@ -207,6 +208,7 @@ export default async function getGaslessQuote(
 	const gasPrice = resultQuote.tx?.gasPrice
 		? new Ok(resultQuote.tx.gasPrice)
 		: await getGasPrice(request.chainId);
+
 	if (gasPrice.err) {
 		return new Err({
 			statusCode: 500,
@@ -220,10 +222,9 @@ export default async function getGaslessQuote(
 
 	const gasFees = getGasFees(request, gasPrice, estimatedGas);
 
-	console.log(`Estimated gas fees: ${gasFees}`);
-
 	const paymentToken: string = resultQuote.buyTokenAddress;
 
+	// todo: add support for affiliate
 	return getValidatorGaslessQuote(
 		request,
 		aggregatorQuote,
