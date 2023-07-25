@@ -77,6 +77,12 @@ export default async function getZeroXQuote(
 		42161: 'arbitrum.api.0x.org',
 	};
 
+	const config = {
+		headers: {
+			'0x-api-key': process.env.ZEROX_API_KEY,
+		},
+	};
+
 	try {
 		const instance = axios.create();
 		instance.defaults.timeout = 5000;
@@ -89,6 +95,7 @@ export default async function getZeroXQuote(
 					skipNulls: true,
 				},
 			)}`,
+			config,
 		);
 
 		return new Ok(
