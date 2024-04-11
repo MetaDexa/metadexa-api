@@ -12,7 +12,7 @@ export enum SupportedChainId {
 	ARBITRUM_RINKEBY = 421611,
 	OPTIMISM = 10,
 	OPTIMISTIC_KOVAN = 69,
-
+	BASE = 8453,
 	POLYGON = 137,
 	POLYGON_MUMBAI = 80001,
 }
@@ -22,6 +22,7 @@ export const SupportedChains: AddressMap = {
 	[SupportedChainId.MAINNET]: 'ETHEREUM',
 	[SupportedChainId.ARBITRUM_ONE]: 'ARBITRUM',
 	[SupportedChainId.OPTIMISM]: 'OPTIMISM',
+	[SupportedChainId.BASE]: 'BASE',
 };
 
 export const CHAIN_NATIVE_TOKEN = {
@@ -30,4 +31,5 @@ export const CHAIN_NATIVE_TOKEN = {
 	[SupportedChainId.MAINNET]: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
 	[SupportedChainId.POLYGON]: '0x0000000000000000000000000000000000001010',
 	[SupportedChainId.OPTIMISM]: '0x4200000000000000000000000000000000000006',
+	[SupportedChainId.BASE]: '0x4200000000000000000000000000000000000006',
 };
