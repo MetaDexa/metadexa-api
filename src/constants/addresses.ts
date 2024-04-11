@@ -66,3 +66,4 @@ export const PROVIDER_ADDRESS: AddressMap = {
 		'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
 	[SupportedChainId.OPTIMISM]: 'https://mainnet.optimism.io',
 	[SupportedChainId.BASE]: 'https://base.llamarpc.com	',
+};
