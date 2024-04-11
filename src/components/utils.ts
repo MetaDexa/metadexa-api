@@ -1,11 +1,11 @@
 /** @format */
 
-import { GAS_MARGIN } from './../constants/constants';
 /** @format */
 
 import Web3 from 'web3';
 import { Err, Ok, Result } from 'ts-results';
 import BigNumber from 'bignumber.js';
+import { GAS_MARGIN } from '../constants/constants';
 import { ResultQuote } from '../interfaces/ResultQuote';
 import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
 import { CompositeQuote } from '../interfaces/CompositeQuote';
@@ -258,8 +258,12 @@ export function buildGaslessAggregatorCallData(
 		const aggregator = betterRoute.to;
 
 		const aggregatorData = betterRoute.data;
-		const adapterId =
-			chainId === 137 ? 'GaslessSwap' : 'GaslessSwapAdapter';
+		let adapterId;
+
+		if (chainId === 137) adapterId = 'GaslessSwap';
+		else if (chainId === 1) adapterId = 'gaslessSwapAdapter';
+		else adapterId = 'GaslessSwapAdapter';
+
 		const adapterData = web3.eth.abi.encodeParameter(
 			'tuple(address,address,uint256,uint256,address,uint256,address,address,bytes)',
 			[
@@ -645,7 +649,7 @@ export default async function simulateTransaction(
 		const paymentFeeValid = paymentFeeBalanceBN.eq(
 			web3.utils.toBN(paymentFees),
 		);
-		if (!paymentFeeValid) {
+		if (chainId !== 1 && !paymentFeeValid) {
 			throw new Error('Cannot accept the token as a relayer fee');
 		}
 		const ethBalanceValid = ethBalanceDiff.gte(
@@ -654,7 +658,7 @@ export default async function simulateTransaction(
 				.mul(web3.utils.toBN(GAS_MARGIN))
 				.div(web3.utils.toBN(100)),
 		);
-		if (!ethBalanceValid) {
+		if (chainId !== 1 && !ethBalanceValid) {
 			throw new Error('Cannot swap the token for native currency');
 		}
 

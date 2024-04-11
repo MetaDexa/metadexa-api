@@ -8,8 +8,6 @@ import { ZeroXRequestParameters } from '../interfaces/ZeroX/ZeroXRequestParamete
 import { RequestError } from '../interfaces/RequestError';
 import { RequestQuote } from '../interfaces/RequestQuote';
 
-require('axios-debug-log');
-
 function createQueryStringRequestObject(
 	request: RequestQuote,
 ): ZeroXRequestParameters {
@@ -75,11 +73,18 @@ export default async function getZeroXQuote(
 		137: 'polygon.api.0x.org',
 		10: 'optimism.api.0x.org',
 		42161: 'arbitrum.api.0x.org',
+		8453: 'base.api.0x.org',
 	};
 
 	try {
 		const instance = axios.create();
 		instance.defaults.timeout = 5000;
+
+		const config = {
+			headers: {
+				'0x-api-key': process.env.ZEROX_API_KEY,
+			},
+		};
 
 		const r = await instance.get(
 			`https://${endpoints[chainId]}/swap/v1/quote?${qs.stringify(
@@ -89,6 +94,7 @@ export default async function getZeroXQuote(
 					skipNulls: true,
 				},
 			)}`,
+			config,
 		);
 
 		return new Ok(
