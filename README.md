@@ -18,9 +18,23 @@ In the current repository, there is a simple NodeJS server which serves as a tra
 
 ## Methods
 
-- GET `/v1.0/{chainId}/getQuote` - Fetches the best aggregated quotes for given trading pair. The transaction is not validated, which means it is not ready for execution.
+- GET `/v1.0/{chainId}/getQuote` - Fetches the best aggregated quotes for given trading pair. The transaction is not validated, which means it is not ready for execution. Supported chains are Ethereum mainnet, Arbitrum, Optimism, Polygon, Base.
   - Request - example: 
   https://api.metadexa.io/v1.0/137/getQuote?fromAddress=0x3510D70e9fFcF31C2Cb7c000CD65B0Ff2272CE66&sellTokenAddress=0x14Af1F2f02DCcB1e43402339099A05a5E363b83c&buyTokenAddress=0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee&sellTokenAmount=631516806119675496697&slippage=0.005&skipValidation=true
+
+
+  - Request: query parameters
+```javascript
+{
+    "fromAddress": "address of txn executor",
+    "sellTokenAddress": "adress of the token that will be sold",
+    "buyTokenAddress": "address of token that will be bought",
+    "sellTokenAmount": "amount of token that will be sold",
+    "slippage": "amount of slippage that is being accepted;",
+    "skipValidation": "whether txn hex data needs to be returned. It should be false if you want txn data ready for execution" 
+}
+```
+
 
   - Response - example: 
 ```javascript
@@ -34,10 +48,22 @@ In the current repository, there is a simple NodeJS server which serves as a tra
 }
 ```
 
-- GET `/v1.0/{chainId}/getQuote` - Fetches the best aggregated quotes for given trading pair. The transaction is validated & yields txn hex data which is ready to be executed
+- GET `/v1.0/{chainId}/getQuote` - Fetches the best aggregated quotes for given trading pair. The transaction is validated & yields txn hex data which is ready to be executed. Supported chains are Ethereum mainnet, Arbitrum, Optimism, Polygon, Base.
   - Request - example: 
   https://api.metadexa.io/v1.0/137/getQuote?fromAddress=0x3510D70e9fFcF31C2Cb7c000CD65B0Ff2272CE66&sellTokenAddress=0x14Af1F2f02DCcB1e43402339099A05a5E363b83c&buyTokenAddress=0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee&sellTokenAmount=1263033612239350993394&slippage=0.005&skipValidation=false
   
+
+  - Request: query parameters
+```javascript
+{
+    "fromAddress": "address of txn executor",
+    "sellTokenAddress": "adress of the token that will be sold",
+    "buyTokenAddress": "address of token that will be bought",
+    "sellTokenAmount": "amount of token that will be sold",
+    "slippage": "amount of slippage that is being accepted;",
+    "skipValidation": "whether txn hex data needs to be returned. It should be false if you want txn data ready for execution" 
+}
+```
 
   - Response - example: 
 ```javascript
