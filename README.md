@@ -151,7 +151,7 @@ https://api.metadexa.io/v1.0/137/getGaslessQuote?fromAddress=0x3510D70e9fFcF31C2
 ```
 
 ## Swagger Documentation
-https://app.swaggerhub.com/apis/ElFuerte90/MetaDexa-API/1.0
+https://api.metadexa.io
 
 ## Contributing 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
