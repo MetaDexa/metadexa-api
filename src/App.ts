@@ -3,8 +3,9 @@
 import cors from 'cors';
 import express from 'express';
 import http from 'http';
-import helmet, { crossOriginResourcePolicy } from 'helmet';
+import helmet from 'helmet';
 import { Result } from 'ts-results';
+import swaggerUi from 'swagger-ui-express';
 import registerRoutes from './routes';
 import addErrorHandler from './middleware/error-handler';
 import getBestQuote from './components/GetBestQuote';
@@ -14,6 +15,7 @@ import { RequestError } from './interfaces/RequestError';
 import getGaslessQuote from './components/GetGaslessQuote';
 import { ResultGaslessQuote } from './interfaces/ResultGaslessQuote';
 import { CompositeQuote } from './interfaces/CompositeQuote';
+import SwaggerDocsOptions from '../swagger.json';
 
 export default class App {
 	public express: express.Application;
@@ -55,6 +57,11 @@ export default class App {
 			express.urlencoded({ limit: '100mb', extended: true }),
 		);
 		this.express.use(cors());
+		this.express.use(
+			'/',
+			swaggerUi.serve,
+			swaggerUi.setup(SwaggerDocsOptions),
+		);
 	}
 
 	private parseRequestHeader(
@@ -70,7 +77,7 @@ export default class App {
 		request: express.Request,
 		response: express.Response,
 	): void {
-		response.json({ message: 'hello' });
+		response.sendFile('./index.html');
 	}
 
 	private async getSwapRoute(
