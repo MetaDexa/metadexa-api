@@ -8,7 +8,11 @@ import qs from 'qs';
 import { Ok, Err, Result } from 'ts-results';
 import { RequestQuote } from '../interfaces/RequestQuote';
 import { RequestError } from '../interfaces/RequestError';
-import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
+import {
+	AggregatorName,
+	AggregatorQuote,
+	TradeType,
+} from '../interfaces/AggregatorQuote';
 import { OneInchQueryParameters } from '../interfaces/OneInch/OneInchQueryParameters';
 
 import { OneInchSwapResponse } from '../interfaces/OneInch/OneInchSwapResponse';
@@ -16,6 +20,7 @@ import {
 	FLASH_WALLET,
 	ONEINCH_AGGREGATOR_ADDRESS,
 } from '../constants/addresses';
+import logger from '../lib/logger';
 
 require('axios-debug-log');
 
@@ -62,8 +67,8 @@ function normalizeOneInchSwapResponse(
 		allowanceTarget: ONEINCH_AGGREGATOR_ADDRESS[chainId],
 		from,
 		recipient,
-
 		tradeType: TradeType.ExactInput,
+		aggregatorName: AggregatorName.OneInch,
 	};
 }
 
@@ -85,8 +90,8 @@ function normalizeOneInchQuoteResponse(
 		allowanceTarget: ONEINCH_AGGREGATOR_ADDRESS[chainId],
 		from,
 		recipient,
-
 		tradeType: TradeType.ExactInput,
+		aggregatorName: AggregatorName.OneInch,
 	};
 }
 
@@ -108,6 +113,7 @@ export async function getOneInchQuoteApi(
 				},
 			)}`,
 		);
+
 		return new Ok(
 			normalizeOneInchQuoteResponse(
 				r.data,
@@ -117,7 +123,7 @@ export async function getOneInchQuoteApi(
 			),
 		);
 	} catch (exception) {
-		console.log(
+		logger.error(
 			`OneInch exception - status code: ${exception?.response?.status} `,
 			exception?.response?.data?.description,
 		);
@@ -132,9 +138,7 @@ export async function getOneInchSwapApi(
 	request: RequestQuote,
 ): Promise<Result<AggregatorQuote, RequestError>> {
 	const { fromAddress, recipient, chainId } = request;
-
 	const queryString = createQueryStringRequestObject(request);
-
 	try {
 		const instance = axios.create();
 		instance.defaults.timeout = 5000;
@@ -157,7 +161,7 @@ export async function getOneInchSwapApi(
 			),
 		);
 	} catch (exception) {
-		console.log(
+		logger.error(
 			`OneInch exception - status code: ${exception?.response?.status} `,
 			exception?.response?.data?.description,
 		);

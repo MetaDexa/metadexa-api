@@ -3,7 +3,11 @@ import axios from 'axios';
 import qs from 'qs';
 import { Ok, Err, Result } from 'ts-results';
 import { ZeroXQuoteResponse } from '../interfaces/ZeroX/ZeroXQuoteResponse';
-import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
+import {
+	AggregatorName,
+	AggregatorQuote,
+	TradeType,
+} from '../interfaces/AggregatorQuote';
 import { ZeroXRequestParameters } from '../interfaces/ZeroX/ZeroXRequestParameters';
 import { RequestError } from '../interfaces/RequestError';
 import { RequestQuote } from '../interfaces/RequestQuote';
@@ -58,8 +62,8 @@ function normalizeZeroXResponse(
 		allowanceTarget: response.allowanceTarget,
 		from,
 		recipient,
-
 		tradeType: isSellAmount ? TradeType.ExactInput : TradeType.ExactOutput,
+		aggregatorName: AggregatorName.ZeroX,
 	};
 }
 

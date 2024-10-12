@@ -46,7 +46,7 @@ async function getValidatorGaslessQuote(
 ): Promise<Result<ResultGaslessQuote, RequestError>> {
 	let paymentFees: string;
 	let aggrQuote: CompositeQuote;
-	paymentFees = gasFees;	
+	paymentFees = gasFees;
 	if (paymentToken === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
 		paymentFees = gasFees;
 	} else if (gasFees !== '0') {

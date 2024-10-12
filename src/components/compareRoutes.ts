@@ -3,34 +3,44 @@
 import { Err, Result } from 'ts-results';
 import { RequestError } from '../interfaces/RequestError';
 import { AggregatorQuote } from '../interfaces/AggregatorQuote';
+import logger from '../lib/logger';
 /** @format */
 
 /** @format */
 export default function compareRoutes(
-	zeroXQuote: Result<AggregatorQuote, RequestError>,
-	oneInchQuote: Result<AggregatorQuote, RequestError>,
+	quoteArray: Result<AggregatorQuote, RequestError>[],
 ): Result<AggregatorQuote, RequestError> {
-	if (zeroXQuote.ok && oneInchQuote.err) return zeroXQuote;
+	// Sorting from highest (better) quote to lowest
+	const bestQuotes = quoteArray.sort((a, b) => {
+		const aData = a.unwrap();
+		const bData = b.unwrap();
+		return (
+			parseInt(bData.buyAmount, 10) - parseInt(aData.buyAmount, 10) ||
+			aData.estimatedGas - bData.estimatedGas
+		);
+	});
 
-	if (oneInchQuote.ok && zeroXQuote.err) return oneInchQuote;
+	bestQuotes.forEach((quote) => {
+		const quoteData = quote.unwrap();
+		logger.debug(
+			'quote',
+			quoteData.buyAmount,
+			'from',
+			quoteData.aggregatorName,
+			'with gas of',
+			quoteData.estimatedGas,
+		);
+	});
+	logger.debug(
+		'bestQuote is ',
+		bestQuotes[0].unwrap().buyAmount,
+		'from',
+		bestQuotes[0].unwrap().aggregatorName,
+	);
 
-	if (oneInchQuote.err && zeroXQuote.err)
-		return new Err({
-			statusCode: 500,
-			data: 'Aggregate Request failed',
-		});
-
-	const zeroX = zeroXQuote;
-	const oneInch = oneInchQuote;
-
-	if (oneInch.unwrap().buyAmount > zeroX.unwrap().buyAmount) return oneInch;
-
-	if (zeroX.unwrap().buyAmount > oneInch.unwrap().buyAmount) return zeroX;
-
-	if (zeroX.unwrap().estimatedGas > oneInch.unwrap().estimatedGas)
-		return oneInch;
-
-	if (zeroX.ok) return zeroX;
+	if (bestQuotes.length > 0) {
+		return bestQuotes[0];
+	}
 
 	return new Err({
 		statusCode: 404,

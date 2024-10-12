@@ -16,6 +16,7 @@ import getGaslessQuote from './components/GetGaslessQuote';
 import { ResultGaslessQuote } from './interfaces/ResultGaslessQuote';
 import { CompositeQuote } from './interfaces/CompositeQuote';
 import SwaggerDocsOptions from '../swagger.json';
+import logger from './lib/logger';
 
 export default class App {
 	public express: express.Application;
@@ -58,7 +59,7 @@ export default class App {
 		);
 		this.express.use(cors());
 		this.express.use(
-			'/',
+			'/docs',
 			swaggerUi.serve,
 			swaggerUi.setup(SwaggerDocsOptions),
 		);
@@ -70,6 +71,7 @@ export default class App {
 		// eslint-disable-next-line @typescript-eslint/ban-types
 		next: Function,
 	): void {
+		logger.debug('Request headers:', req.headers);
 		next();
 	}
 

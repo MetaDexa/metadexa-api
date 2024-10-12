@@ -16,6 +16,8 @@ import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
 import { RequestQuote } from '../interfaces/RequestQuote';
 import { CompositeQuote } from '../interfaces/CompositeQuote';
 import { divCeil } from './utils';
+import getOdosQuote from './getOdosQuote';
+import logger from '../lib/logger';
 
 async function getGasPrice(chainId: number): Promise<Result<string, Error>> {
 	const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
@@ -256,31 +258,47 @@ function getNormalizedResponse(
 export default async function getBestQuote(
 	request: RequestQuote,
 ): Promise<Result<CompositeQuote, RequestError>> {
-	const [zeroXQuote, oneInchQuote] = await Promise.all([
+	const [zeroXQuote, odosQuote] = await Promise.all([
 		getZeroXQuote(request),
+		getOdosQuote(request),
 		getOneInchQuote(request, request.skipValidation),
 	]);
 
-	if (zeroXQuote === undefined && oneInchQuote === undefined) {
+	const aggregatorQuotes: Result<AggregatorQuote, RequestError>[] = [
+		zeroXQuote,
+		odosQuote,
+		// oneInchQuote, // this one is not working for now anwyway
+	];
+
+	const validAggregatorQuotes = aggregatorQuotes.filter(
+		(quote) => quote !== undefined && quote.ok && !quote.err,
+	);
+
+	// check if there are no valid aggregator quotes
+	if (validAggregatorQuotes.length === 0) {
 		return new Err({
 			statusCode: 500,
-			data: 'Aggregator request failure',
+			data: 'Aggregate Request failed',
 		});
 	}
+
 	const betterRoute: Result<AggregatorQuote, RequestError> = compareRoutes(
-		zeroXQuote,
-		oneInchQuote,
+		validAggregatorQuotes,
 	);
 
 	// check if better router is not errored
+	// ??
 	if (betterRoute.err) {
 		return betterRoute;
 	}
 
 	let txData: TransactionData | undefined;
 
+	logger.debug('betterRoute', betterRoute);
+
 	if (!request.skipValidation) {
-		let transactionData;
+		// get transaction data
+		let transactionData: Result<TransactionData, RequestError>;
 		if (METASWAP_ROUTER_CONTRACT_ADDRESS[request.chainId]) {
 			transactionData = await getTransactionData(
 				betterRoute.unwrap(),
