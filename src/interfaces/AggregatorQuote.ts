@@ -10,7 +10,7 @@ export enum AggregatorName {
 }
 
 export interface AggregatorQuote {
-	to: string | undefined; 
+	to: string | undefined;
 	data: string | undefined; // The transaction data
 	value: string | undefined; // The value of the transaction
 	estimatedGas: number; // The estimated gas for the transaction

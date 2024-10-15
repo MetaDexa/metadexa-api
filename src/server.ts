@@ -7,6 +7,7 @@ import logger from './lib/logger';
 
 const env: Environment = new Environment();
 setGlobalEnvironment(env);
+logger.level = (env.getCurrentEnvironment() === 'local' ? 'debug' : 'info');
 const app: App = new App();
 let server: http.Server;
 

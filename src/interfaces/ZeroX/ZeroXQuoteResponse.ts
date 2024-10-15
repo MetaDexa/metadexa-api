@@ -1,5 +1,3 @@
-/** @format */
-
 export interface ZeroXQuoteResponse {
 	chainId: number;
 	price: string;

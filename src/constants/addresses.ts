@@ -1,5 +1,3 @@
-/** @format */
-
 import { SupportedChainId } from './tokens';
 
 type AddressMap = { [chainId: number]: string };

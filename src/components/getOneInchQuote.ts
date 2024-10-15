@@ -1,13 +1,9 @@
-/** @format */
-
-/** @format */
-
-/** @format */
 import axios from 'axios';
 import qs from 'qs';
 import { Ok, Err, Result } from 'ts-results';
-import { RequestQuote } from '../interfaces/RequestQuote';
+import { QUOTE_REQUEST_TIMEOUT } from '../constants/constants';
 import { RequestError } from '../interfaces/RequestError';
+import { RequestQuote } from '../interfaces/RequestQuote';
 import {
 	AggregatorName,
 	AggregatorQuote,
@@ -103,7 +99,7 @@ export async function getOneInchQuoteApi(
 	const queryString = createQueryStringRequestObject(request);
 	try {
 		const instance = axios.create();
-		instance.defaults.timeout = 5000;
+		instance.defaults.timeout = QUOTE_REQUEST_TIMEOUT;
 		const r = await instance.get(
 			`https://api.1inch.io/v4.0/${chainId}/quote?${qs.stringify(
 				queryString,
@@ -141,7 +137,7 @@ export async function getOneInchSwapApi(
 	const queryString = createQueryStringRequestObject(request);
 	try {
 		const instance = axios.create();
-		instance.defaults.timeout = 5000;
+		instance.defaults.timeout = QUOTE_REQUEST_TIMEOUT;
 		const r = await instance.get(
 			`https://api.1inch.io/v4.0/${chainId}/swap?${qs.stringify(
 				queryString,

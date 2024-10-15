@@ -1,9 +1,9 @@
-/** @format */
-
 // eslint-disable-next-line import/prefer-default-export
 export const GAS_OVERHEAD = '130000';
 
 export const GAS_MARGIN = 95;
+
+export const QUOTE_REQUEST_TIMEOUT = 10000;
 
 export const FREE_SWAPS_CAMPAIGN = {
 	137: true,

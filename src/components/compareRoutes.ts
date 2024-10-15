@@ -1,12 +1,8 @@
-/** @format */
-
 import { Err, Result } from 'ts-results';
 import { RequestError } from '../interfaces/RequestError';
 import { AggregatorQuote } from '../interfaces/AggregatorQuote';
 import logger from '../lib/logger';
-/** @format */
 
-/** @format */
 export default function compareRoutes(
 	quoteArray: Result<AggregatorQuote, RequestError>[],
 ): Result<AggregatorQuote, RequestError> {
@@ -22,21 +18,17 @@ export default function compareRoutes(
 
 	bestQuotes.forEach((quote) => {
 		const quoteData = quote.unwrap();
-		logger.debug(
-			'quote',
-			quoteData.buyAmount,
-			'from',
-			quoteData.aggregatorName,
-			'with gas of',
-			quoteData.estimatedGas,
-		);
+		logger.debug({
+			amount: quoteData.buyAmount,
+			from: quoteData.aggregatorName,
+			gas: quoteData.estimatedGas,
+		});
 	});
-	logger.debug(
-		'bestQuote is ',
-		bestQuotes[0].unwrap().buyAmount,
-		'from',
-		bestQuotes[0].unwrap().aggregatorName,
-	);
+	logger.info({
+		buyAmount: bestQuotes[0].unwrap().buyAmount,
+		from: bestQuotes[0].unwrap().aggregatorName,
+		gas: bestQuotes[0].unwrap().estimatedGas,
+	});
 
 	if (bestQuotes.length > 0) {
 		return bestQuotes[0];

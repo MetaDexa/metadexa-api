@@ -1,5 +1,3 @@
-/** @format */
-
 export interface RequestQuote {
 	chainId: number;
 	fromAddress: string;

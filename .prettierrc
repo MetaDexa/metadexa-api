@@ -9,8 +9,6 @@
     "useTabs": true,
     "parser": "typescript",
     "arrowParens": "always",
-    "requirePragma": true,
-    "insertPragma": true,
     "endOfLine": "lf",
     "overrides": [
         {
