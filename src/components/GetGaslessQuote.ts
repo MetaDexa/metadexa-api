@@ -1,5 +1,3 @@
-/** @format */
-
 import Web3 from 'web3';
 import { Ok, Err, Result } from 'ts-results';
 import {
@@ -46,7 +44,7 @@ async function getValidatorGaslessQuote(
 ): Promise<Result<ResultGaslessQuote, RequestError>> {
 	let paymentFees: string;
 	let aggrQuote: CompositeQuote;
-	paymentFees = gasFees;	
+	paymentFees = gasFees;
 	if (paymentToken === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
 		paymentFees = gasFees;
 	} else if (gasFees !== '0') {

@@ -16,6 +16,12 @@ In the current repository, there is a simple NodeJS server which serves as a tra
 2. npm run start 
 ```
 
+## Swagger Documentation
+You can access the API docs in local dev and in production
+
+http://localhost:4001/docs
+https://api.metadexa.io/docs
+
 ## Methods
 
 - GET `/v1.0/{chainId}/getQuote` - Fetches the best aggregated quotes for given trading pair. The transaction is not validated, which means it is not ready for execution. Supported chains are Ethereum mainnet, Arbitrum, Optimism, Polygon, Base.
@@ -149,9 +155,6 @@ https://api.metadexa.io/v1.0/137/getGaslessQuote?fromAddress=0x3510D70e9fFcF31C2
     }
 }
 ```
-
-## Swagger Documentation
-https://api.metadexa.io
 
 ## Contributing 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

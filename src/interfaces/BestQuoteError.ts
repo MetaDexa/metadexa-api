@@ -1,5 +1,3 @@
-/** @format */
-
 export interface BestQuoteError {
 	statusCode1: number;
 	data1: string;

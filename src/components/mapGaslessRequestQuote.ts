@@ -1,11 +1,8 @@
-/** @format */
-
 import { Err, Ok, Result } from 'ts-results';
 import express from 'express';
 import Joi from 'joi';
 import { RequestError } from '../interfaces/RequestError';
 import { RequestGaslessQuote } from '../interfaces/RequestGaslessQuote';
-/** @format */
 
 export default function mapToRequestGaslessQuote(
 	request: express.Request,

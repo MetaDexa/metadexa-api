@@ -1,12 +1,17 @@
-/** @format */
 import axios from 'axios';
 import qs from 'qs';
 import { Ok, Err, Result } from 'ts-results';
+import { QUOTE_REQUEST_TIMEOUT } from '../constants/constants';
 import { ZeroXQuoteResponse } from '../interfaces/ZeroX/ZeroXQuoteResponse';
-import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
+import {
+	AggregatorName,
+	AggregatorQuote,
+	TradeType,
+} from '../interfaces/AggregatorQuote';
 import { ZeroXRequestParameters } from '../interfaces/ZeroX/ZeroXRequestParameters';
 import { RequestError } from '../interfaces/RequestError';
 import { RequestQuote } from '../interfaces/RequestQuote';
+import logger from '../lib/logger';
 
 function createQueryStringRequestObject(
 	request: RequestQuote,
@@ -58,8 +63,8 @@ function normalizeZeroXResponse(
 		allowanceTarget: response.allowanceTarget,
 		from,
 		recipient,
-
 		tradeType: isSellAmount ? TradeType.ExactInput : TradeType.ExactOutput,
+		aggregatorName: AggregatorName.ZeroX,
 	};
 }
 
@@ -78,7 +83,7 @@ export default async function getZeroXQuote(
 
 	try {
 		const instance = axios.create();
-		instance.defaults.timeout = 5000;
+		instance.defaults.timeout = QUOTE_REQUEST_TIMEOUT;
 
 		const config = {
 			headers: {
@@ -106,7 +111,7 @@ export default async function getZeroXQuote(
 			),
 		);
 	} catch (exception) {
-		console.log(
+		logger.error(
 			`ZeroX exception - status code: ${exception?.toString()} `,
 			exception?.toString(),
 		);

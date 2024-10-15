@@ -1,12 +1,13 @@
 import * as http from 'http';
 import { AddressInfo } from 'net';
-import { setGlobalEnvironment } from './global';
+import setGlobalEnvironment from './global';
 import App  from './App';
 import Environment from './environments/environment';
 import logger from './lib/logger';
 
 const env: Environment = new Environment();
 setGlobalEnvironment(env);
+logger.level = (env.getCurrentEnvironment() === 'local' ? 'debug' : 'info');
 const app: App = new App();
 let server: http.Server;
 
@@ -25,10 +26,12 @@ function serverListening(): void {
 
 app.init().then(() => {
     app.express.set('port', env.port || 5000);
-
     server = app.httpServer; // http.createServer(App);
     server.on('error', serverError);
     server.on('listening', serverListening);
+    server.on('request' , (req, res) => {
+        logger.info(`${res.statusCode} - ${req.url} ${res.statusMessage ?? ''}`);
+    });
     server.listen(env.port);
 }).catch((err: Error) => {
     logger.info('app.init error');

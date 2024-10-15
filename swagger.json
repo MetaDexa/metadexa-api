@@ -7,7 +7,12 @@
   },
   "servers": [
     {
-      "url": "https://api.metadexa.io/"
+      "url": "https://api.metadexa.io/",
+      "description": "Mainnet"
+    },
+    {
+      "url": "http://localhost:4001/",
+      "description": "Local"
     }
   ],
   "paths": {
@@ -61,7 +66,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "10000000"
+            "example": "100000000000000"
           },
           {
             "name": "sellTokenAddress",
@@ -70,7 +75,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
+            "example": "0x14af1f2f02dccb1e43402339099a05a5e363b83c"
           },
           {
             "name": "buyTokenAddress",

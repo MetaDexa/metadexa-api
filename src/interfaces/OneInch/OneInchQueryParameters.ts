@@ -1,5 +1,3 @@
-/** @format */
-
 export interface OneInchQueryParameters {
 	fromTokenAddress: string;
 	toTokenAddress: string;

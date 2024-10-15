@@ -1,5 +1,3 @@
-/** @format */
-
 export interface ForwarderRequest {
 	signer: string;
 	metaswap: string;

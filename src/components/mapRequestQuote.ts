@@ -1,11 +1,8 @@
-/** @format */
-
 import { Err, Ok, Result } from 'ts-results';
 import express from 'express';
 import Joi from 'joi';
 import { RequestError } from '../interfaces/RequestError';
 import { RequestQuote } from '../interfaces/RequestQuote';
-/** @format */
 
 export default function mapToRequestQuote(
 	request: express.Request,

@@ -1,7 +1,3 @@
-/** @format */
-
-/** @format */
-
 import Web3 from 'web3';
 import { Err, Ok, Result } from 'ts-results';
 import BigNumber from 'bignumber.js';
@@ -19,8 +15,6 @@ import {
 import { ForwarderRequest } from '../interfaces/ForwarderRequest';
 import validatorSign from './RelayerSignature';
 import { RequestError } from '../interfaces/RequestError';
-
-/** @format */
 
 export async function estimateGas(
 	chainId: number,
