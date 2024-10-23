@@ -63,7 +63,7 @@ async function getValidatorGaslessQuote(
 			signaturePermitData: undefined,
 		};
 		const exactOutputQuote: Result<CompositeQuote, RequestError> =
-			await getBestQuote(paymentTokenQuote);
+			await getBestQuote(paymentTokenQuote, true);
 
 		if (exactOutputQuote.err) {
 			return exactOutputQuote;
@@ -196,6 +196,7 @@ export default async function getGaslessQuote(
 ): Promise<Result<ResultGaslessQuote, RequestError>> {
 	const data: Result<CompositeQuote, RequestError> = await getBestQuote(
 		request,
+		true,
 	);
 
 	if (data.err) {

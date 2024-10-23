@@ -96,6 +96,7 @@ export default class App {
 
 		const data: Result<CompositeQuote, RequestError> = await getBestQuote(
 			requestQuote.unwrap(),
+			false, // getGaslessQuote flag
 		);
 
 		// eslint-disable-next-line no-prototype-builtins

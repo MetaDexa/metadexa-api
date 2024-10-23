@@ -255,18 +255,20 @@ function getNormalizedResponse(
 
 export default async function getBestQuote(
 	request: RequestQuote,
+	getGaslessQuote: boolean | undefined,
 ): Promise<Result<CompositeQuote, RequestError>> {
 	const [zeroXQuote, odosQuote] = await Promise.all([
 		getZeroXQuote(request),
 		getOdosQuote(request),
-		getOneInchQuote(request, request.skipValidation),
+		//getOneInchQuote(request, request.skipValidation),
 	]);
 
 	const aggregatorQuotes: Result<AggregatorQuote, RequestError>[] = [
 		zeroXQuote,
-		odosQuote,
 		// oneInchQuote, // this one is not working for now anwyway
 	];
+
+	if (getGaslessQuote === false) aggregatorQuotes.push(odosQuote);
 
 	const validAggregatorQuotes = aggregatorQuotes.filter(
 		(quote) => quote !== undefined && quote.ok && !quote.err,
