@@ -1,5 +1,3 @@
-/** @format */
-
 import { AggregatorQuote } from './AggregatorQuote';
 import { ResultQuote } from './ResultQuote';
 

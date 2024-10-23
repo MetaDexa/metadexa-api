@@ -1,5 +1,3 @@
-/** @format */
-
 export interface ZeroXRequestParameters {
 	sellToken: string;
 	buyToken: string;

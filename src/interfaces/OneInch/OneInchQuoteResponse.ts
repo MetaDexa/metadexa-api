@@ -1,5 +1,3 @@
-/** @format */
-
 import { OneInchResponseToken } from './OneInchResponseToken';
 
 export interface OneInchQuoteResponse {

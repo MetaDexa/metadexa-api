@@ -1,5 +1,3 @@
-/** @format */
-
 export interface TransactionData {
 	from: string;
 	to: string;

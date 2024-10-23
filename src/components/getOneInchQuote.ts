@@ -1,14 +1,14 @@
-/** @format */
-
-/** @format */
-
-/** @format */
 import axios from 'axios';
 import qs from 'qs';
 import { Ok, Err, Result } from 'ts-results';
-import { RequestQuote } from '../interfaces/RequestQuote';
+import { QUOTE_REQUEST_TIMEOUT } from '../constants/constants';
 import { RequestError } from '../interfaces/RequestError';
-import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
+import { RequestQuote } from '../interfaces/RequestQuote';
+import {
+	AggregatorName,
+	AggregatorQuote,
+	TradeType,
+} from '../interfaces/AggregatorQuote';
 import { OneInchQueryParameters } from '../interfaces/OneInch/OneInchQueryParameters';
 
 import { OneInchSwapResponse } from '../interfaces/OneInch/OneInchSwapResponse';
@@ -16,6 +16,7 @@ import {
 	FLASH_WALLET,
 	ONEINCH_AGGREGATOR_ADDRESS,
 } from '../constants/addresses';
+import logger from '../lib/logger';
 
 require('axios-debug-log');
 
@@ -62,8 +63,8 @@ function normalizeOneInchSwapResponse(
 		allowanceTarget: ONEINCH_AGGREGATOR_ADDRESS[chainId],
 		from,
 		recipient,
-
 		tradeType: TradeType.ExactInput,
+		aggregatorName: AggregatorName.OneInch,
 	};
 }
 
@@ -85,8 +86,8 @@ function normalizeOneInchQuoteResponse(
 		allowanceTarget: ONEINCH_AGGREGATOR_ADDRESS[chainId],
 		from,
 		recipient,
-
 		tradeType: TradeType.ExactInput,
+		aggregatorName: AggregatorName.OneInch,
 	};
 }
 
@@ -98,7 +99,7 @@ export async function getOneInchQuoteApi(
 	const queryString = createQueryStringRequestObject(request);
 	try {
 		const instance = axios.create();
-		instance.defaults.timeout = 5000;
+		instance.defaults.timeout = QUOTE_REQUEST_TIMEOUT;
 		const r = await instance.get(
 			`https://api.1inch.io/v4.0/${chainId}/quote?${qs.stringify(
 				queryString,
@@ -108,6 +109,7 @@ export async function getOneInchQuoteApi(
 				},
 			)}`,
 		);
+
 		return new Ok(
 			normalizeOneInchQuoteResponse(
 				r.data,
@@ -117,7 +119,7 @@ export async function getOneInchQuoteApi(
 			),
 		);
 	} catch (exception) {
-		console.log(
+		logger.error(
 			`OneInch exception - status code: ${exception?.response?.status} `,
 			exception?.response?.data?.description,
 		);
@@ -132,12 +134,10 @@ export async function getOneInchSwapApi(
 	request: RequestQuote,
 ): Promise<Result<AggregatorQuote, RequestError>> {
 	const { fromAddress, recipient, chainId } = request;
-
 	const queryString = createQueryStringRequestObject(request);
-
 	try {
 		const instance = axios.create();
-		instance.defaults.timeout = 5000;
+		instance.defaults.timeout = QUOTE_REQUEST_TIMEOUT;
 		const r = await instance.get(
 			`https://api.1inch.io/v4.0/${chainId}/swap?${qs.stringify(
 				queryString,
@@ -157,7 +157,7 @@ export async function getOneInchSwapApi(
 			),
 		);
 	} catch (exception) {
-		console.log(
+		logger.error(
 			`OneInch exception - status code: ${exception?.response?.status} `,
 			exception?.response?.data?.description,
 		);

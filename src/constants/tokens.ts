@@ -1,4 +1,3 @@
-/** @format */
 type AddressMap = { [chainId: number]: string };
 
 export enum SupportedChainId {

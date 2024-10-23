@@ -1,5 +1,3 @@
-/** @format */
-
 import { Err, Ok, Result } from 'ts-results';
 import Web3 from 'web3';
 import { RequestError } from '../interfaces/RequestError';

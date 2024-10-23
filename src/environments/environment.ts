@@ -1,5 +1,3 @@
-/** @format */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import { config as configDotenv } from 'dotenv';
@@ -26,7 +24,6 @@ class Environment implements IEnvironment {
 		this.port = Number(port);
 		this.applyEncryption = JSON.parse(process.env.APPLY_ENCRYPTION);
 		this.secretKey = process.env.SECRET_KEY;
-
 		this.relayerApiKey = process.env.API_KEY;
 		this.relayerSecretKey = process.env.API_SECRET;
 	}

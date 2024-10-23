@@ -1,5 +1,3 @@
-/** @format */
-
 export interface RequestGaslessQuote {
 	chainId: number;
 	fromAddress: string;
