@@ -1,11 +1,10 @@
 import { OneInchResponseToken } from './OneInchResponseToken';
 
 export interface OneInchSwapResponse {
-	fromToken: OneInchResponseToken;
-	toToken: OneInchResponseToken;
+	srcToken: OneInchResponseToken;
+	dstToken: OneInchResponseToken;
 	estimatedGas: number | undefined;
-	toTokenAmount: string;
-	fromTokenAmount: string;
+	dstAmount: string;
 	tx: {
 		from: string;
 		to: string;

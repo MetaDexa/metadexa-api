@@ -109,8 +109,7 @@ async function getTransactionData(
 							),
 						web3.utils.toBN(100000),
 					),
-			  );
-
+				);
 	const minAmount =
 		betterRoute.tradeType === TradeType.ExactInput
 			? web3.utils.toHex(
@@ -130,13 +129,16 @@ async function getTransactionData(
 							),
 						web3.utils.toBN(100000),
 					),
-			  )
+				)
 			: web3.utils.toHex(betterRoute.buyAmount);
 
 	const aggregator = betterRoute.to;
 
 	const aggregatorData = betterRoute.data;
 	const adapterId = 'SwapAggregator';
+	logger.debug(
+		`${tokenFrom} ${tokenTo} ${amountFrom} ${minAmount} ${aggregator} ${aggregatorData}`,
+	);
 	const adapterData: string = web3.eth.abi.encodeParameter(
 		'tuple(address,address,uint256,uint256,address,bytes)',
 		[tokenFrom, tokenTo, amountFrom, minAmount, aggregator, aggregatorData],
@@ -245,8 +247,8 @@ function getNormalizedResponse(
 				betterRoute.sellTokenAddress ===
 				'0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
 					? '0x0000000000000000000000000000000000000000'
-					: METASWAP_ROUTER_CONTRACT_ADDRESS[chainId] ??
-					  betterRoute.allowanceTarget,
+					: (METASWAP_ROUTER_CONTRACT_ADDRESS[chainId] ??
+						betterRoute.allowanceTarget),
 			tx: txData,
 		},
 		aggregatorQuote: betterRoute,
@@ -257,25 +259,28 @@ export default async function getBestQuote(
 	request: RequestQuote,
 	getGaslessQuote: boolean | undefined,
 ): Promise<Result<CompositeQuote, RequestError>> {
-	const [zeroXQuote, odosQuote] = await Promise.all([
-		getZeroXQuote(request),
+	const [oneInchQuote, odosQuote, zeroXQuote] = await Promise.all([
+		getOneInchQuote(request),
 		getOdosQuote(request),
-		//getOneInchQuote(request, request.skipValidation),
+		getZeroXQuote(request),
 	]);
 
 	const aggregatorQuotes: Result<AggregatorQuote, RequestError>[] = [
 		zeroXQuote,
-		// oneInchQuote, // this one is not working for now anwyway
+		// odosQuote,
+		// oneInchQuote,
 	];
 
-	if (getGaslessQuote === false) aggregatorQuotes.push(odosQuote);
+	if (getGaslessQuote === false) {
+		aggregatorQuotes.push(...[odosQuote, oneInchQuote]);
+	}
 
 	const validAggregatorQuotes = aggregatorQuotes.filter(
 		(quote) => quote !== undefined && quote.ok && !quote.err,
 	);
 
 	// check if there are no valid aggregator quotes
-	if (validAggregatorQuotes.length === 0) {
+	if (!validAggregatorQuotes || validAggregatorQuotes?.length === 0) {
 		return new Err({
 			statusCode: 500,
 			data: 'Aggregate Request failed',

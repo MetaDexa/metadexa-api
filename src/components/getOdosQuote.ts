@@ -160,7 +160,7 @@ export default async function getOdosQuote(
 		const assembleRequestParameters: OdosAssembleRequestParameters = {
 			userAddr: fromAddress,
 			pathId: quoteResponse.pathId,
-			simulate: true,
+			simulate: false,
 		};
 
 		const r2 = await instance.post(
