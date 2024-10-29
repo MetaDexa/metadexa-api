@@ -1,9 +1,11 @@
 export interface OneInchResponseToken {
-    symbol: string, 
-    name: string, 
-    decimals: number, 
-    address: string, 
-    logoURI: string, 
-    tags: [],
-    isCustom: boolean    
+	address: string;
+	symbol: string;
+	name: string;
+	decimals: number;
+	eip2612: boolean;
+	isFoT: boolean;
+	logoURI: string;
+	domainVersion?: string;
+	tags: string[];
 }

@@ -1,16 +1,15 @@
 import { OneInchResponseToken } from './OneInchResponseToken';
 
 export interface OneInchQuoteResponse {
-	fromToken: OneInchResponseToken;
-	toToken: OneInchResponseToken;
-	toTokenAmount: string;
-	fromTokenAmount: string;
-	tx: {
-		from: string;
-		to: string;
-		data: string;
-		value: string;
+	srcToken: OneInchResponseToken;
+	dstToken: OneInchResponseToken;
+	dstAmount: string;
+	gas: number;
+	protocols: {
+		name: string;
+		part: number;
+		fromTokenAddress: string;
+		toTokenAddress: string;
 		gas: number;
-		gasPrice: number;
-	};
+	}[][];
 }
