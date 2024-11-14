@@ -44,6 +44,7 @@ function createQueryStringRequestObject(
 			},
 		],
 		slippageLimitPercent: parseFloat(request.slippage),
+		referralCode: environment.odosReferralID,
 		userAddr: request.fromAddress,
 	};
 	return requestParams;
