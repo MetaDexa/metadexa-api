@@ -1,4 +1,4 @@
-import { SupportedChainId } from './tokens';
+import { SupportedChainId } from './chains';
 
 type AddressMap = { [chainId: number]: string };
 
@@ -10,6 +10,21 @@ export const METASWAP_ROUTER_CONTRACT_ADDRESS: AddressMap = {
 	[SupportedChainId.OPTIMISM]: '0x6FE9F5616Ac30E0A66B5Bc68D05F081471835bf7',
 	[SupportedChainId.MAINNET]: '0x8F42F726e9222DbBd8958D006aa88F1d2D8e6D91',
 	[SupportedChainId.BASE]: '0x8F42F726e9222DbBd8958D006aa88F1d2D8e6D91',
+};
+
+export const LIMIT_ORDER_MANAGER_ADDRESSES: AddressMap = {
+	[SupportedChainId.KOVAN]: '0x66E15bb53c9C5fB1B9Aa19D84920A3965cEad8a7',
+	[SupportedChainId.OPTIMISTIC_KOVAN]:
+		'0x6bC9BFfF3CD847Fd1e061E3B275901b930872B4B',
+	[SupportedChainId.OPTIMISM]: '0x7314Af7D05e054E96c44D7923E68d66475FfaAb8',
+	[SupportedChainId.ARBITRUM_RINKEBY]:
+		'0xf10A3841bc1ccEAe1DC162e66e615D2416A3adac',
+	[SupportedChainId.ARBITRUM_ONE]:
+		'0x02C282F60FB2f3299458c2B85EB7E303b25fc6F0',
+	[SupportedChainId.MAINNET]: '0xD1fDF0144be118C30a53E1d08Cc1E61d600E508e',
+	[SupportedChainId.POLYGON]: '0x03F490aE5b59E428E6692059d0Dca1B87ED42aE1',
+	[SupportedChainId.POLYGON_MUMBAI]:
+		'0x62052292295791fB07C95eF6F7ACD68ae475ee8C',
 };
 
 export const MULTICALL_ADDRESS: AddressMap = {
@@ -83,4 +98,18 @@ export const PROVIDER_ADDRESS: AddressMap = {
 		'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
 	[SupportedChainId.OPTIMISM]: 'https://mainnet.optimism.io',
 	[SupportedChainId.BASE]: 'https://base.llamarpc.com	',
+};
+
+export const KROM_TOKEN_ADDRESSES: AddressMap = {
+	[SupportedChainId.KOVAN]: '0x4cEbC301Cd0E8AD64dE6B19576de7dd0B0140a1f',
+	[SupportedChainId.OPTIMISTIC_KOVAN]:
+		'0x0f747ed5De34aaDc17E39368b7d90da2D0545319',
+	[SupportedChainId.OPTIMISM]: '0xF98dCd95217E15E05d8638da4c91125E59590B07',
+	[SupportedChainId.ARBITRUM_RINKEBY]:
+		'0x4f1BB8FD099170714AC6F756966616fCc39ae867',
+	[SupportedChainId.ARBITRUM_ONE]:
+		'0x55fF62567f09906A85183b866dF84bf599a4bf70',
+	[SupportedChainId.MAINNET]: '0x3af33bef05c2dcb3c7288b77fe1c8d2aeba4d789',
+	[SupportedChainId.POLYGON]: '0x14Af1F2f02DCcB1e43402339099A05a5E363b83c',
+	[SupportedChainId.BASE]: '0x14Af1F2f02DCcB1e43402339099A05a5E363b83c', // todo*: update when krom is deployed on base
 };

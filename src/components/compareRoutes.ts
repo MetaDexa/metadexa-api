@@ -18,13 +18,13 @@ export default function compareRoutes(
 
 	bestQuotes.forEach((quote) => {
 		const quoteData = quote.unwrap();
-		logger.debug({
+		logger.silly({
 			amount: quoteData.buyAmount,
 			from: quoteData.aggregatorName,
 			gas: quoteData.estimatedGas,
 		});
 	});
-	logger.info({
+	logger.silly({
 		buyAmount: bestQuotes[0].unwrap().buyAmount,
 		from: bestQuotes[0].unwrap().aggregatorName,
 		gas: bestQuotes[0].unwrap().estimatedGas,

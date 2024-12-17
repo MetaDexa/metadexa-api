@@ -260,7 +260,7 @@ export default async function getBestQuote(
 	const [zeroXQuote, odosQuote] = await Promise.all([
 		getZeroXQuote(request),
 		getOdosQuote(request),
-		//getOneInchQuote(request, request.skipValidation),
+		// getOneInchQuote(request, request.skipValidation),
 	]);
 
 	const aggregatorQuotes: Result<AggregatorQuote, RequestError>[] = [
@@ -294,7 +294,7 @@ export default async function getBestQuote(
 
 	let txData: TransactionData | undefined;
 
-	logger.debug('betterRoute', betterRoute);
+	logger.debug(`betterRoute ${JSON.stringify(betterRoute, null, 4)}`);
 
 	if (!request.skipValidation) {
 		// get transaction data

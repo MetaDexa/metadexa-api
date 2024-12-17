@@ -1,247 +1,397 @@
 {
-  "openapi": "3.0.1",
-  "info": {
-    "title": "MetaDexa API",
-    "description": "MetaDexa - Trading API",
-    "version": "1.0"
-  },
-  "servers": [
-    {
-      "url": "https://api.metadexa.io/",
-      "description": "Mainnet"
-    },
-    {
-      "url": "http://localhost:4001/",
-      "description": "Local"
-    }
-  ],
-  "paths": {
-    "/v1.0/{chainId}/getQuote": {
-      "get": {
-        "tags": [
-          "Get Quote"
-        ],
-        "description": "Fetches the best aggregated quotes for given trading pair",
-        "parameters": [
-          {
-            "name": "chainId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "enum": [
-                1,
-                42161,
-                10,
-                137,
-                8453
-              ]
-            },
-            "example": 137
-          },
-          {
-            "name": "fromAddress",
-            "description": "address of the owner EOA",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "example": "0xe26F8f8A14251425Dd4E7f59f14eE5C0c2568956"
-          },
-          {
-            "name": "skipValidation",
-            "required": true,
-            "description": "true if example quote is needed. false if you need transaction with data ready to be executed",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            },
-            "example": true
-          },
-          {
-            "name": "sellTokenAmount",
-            "description": "amount of token that will be sold",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "example": "100000000000000"
-          },
-          {
-            "name": "sellTokenAddress",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "example": "0x14af1f2f02dccb1e43402339099a05a5e363b83c"
-          },
-          {
-            "name": "buyTokenAddress",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "example": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
-          },
-          {
-            "name": "slippage",
-            "description": "Price slippage you are willing to accept, may be set with decimals. (e.g. slippage=0.005 means 0.5% slippage is acceptable; slippage=0.01 means 1% slippage is acceptable, etc.)",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "example": "0.005"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the best aggregated quotes for given trading pair",
-            "content": {
-              "application/json; charset=utf-8": {
-                "schema": {
-                  "type": "object",
-                  "example": {
-                    "estimatedGas": 531962,
-                    "buyTokenAddress": "0x14af1f2f02dccb1e43402339099a05a5e363b83c",
-                    "buyAmount": "153047124858823786407",
-                    "sellTokenAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-                    "sellAmount": "10000000",
-                    "allowanceTarget": "0x6afD834f6e3D5ad5A83E7838ca45F3DBDe3E323d",
-                    "tx": {
-                      "description": "txn object is present if skipValidation is false",
-                      "from": "0x3510D70e9fFcF31C2Cb7c000CD65B0Ff2272CE66",
-                      "to": "0x6afD834f6e3D5ad5A83E7838ca45F3DBDe3E323d",
-                      "data": "0xe79f303b00000000000000000000000014af1f2f02dccb1e43402339099a05a5e363b83c0000",
-                      "gas": 429013,
-                      "value": "0",
-                      "gasPrice": "30000000013"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1.0/{chainId}/getGaslessQuote": {
-      "get": {
-        "tags": [
-          "Get Gasless Quote"
-        ],
-        "description": "Fetches the best Gasless aggregated quotes for given trading pair",
-        "parameters": [
-          {
-            "name": "chainId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "enum": [
-                1,
-                42161,
-                10,
-                137,
-                8453
-              ]
-            },
-            "example": 137
-          },
-          {
-            "name": "fromAddress",
-            "required": true,
-            "description": "address of txn executor",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "example": "0x252ca143428929B2A351888ab14634629a9CF216"
-          },
-          {
-            "name": "sellTokenAddress",
-            "description": "address of the token that will be sold",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "example": "0x14Af1F2f02DCcB1e43402339099A05a5E363b83c"
-          },
-          {
-            "name": "buyTokenAddress",
-            "description": "address of token that will be bought",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-          },
-          {
-            "name": "sellTokenAmount",
-            "description": "amount of token that will be sold",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "example": "2000"
-          },
-          {
-            "name": "slippage",
-            "description": "Price slippage you are willing to accept, may be set with decimals. (e.g. slippage=0.005 means 0.5% slippage is acceptable; slippage=0.01 means 1% slippage is acceptable, etc.)",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "example": "0.005"
-          },
-          {
-            "name": "skipValidation",
-            "description": "whether txn hex data needs to be returned. It should be false if you want txn data ready for execution. True will give non validated quote, but without data ready for execution.",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            },
-            "example": false
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the best Gasless aggregated quotes for given trading pair",
-            "content": {
-              "application/json; charset=utf-8": {
-                "schema": {
-                  "type": "object",
-                  "example": {
-                    "estimatedGas": 240000,
-                    "paymentTokenAddress": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-                    "paymentFees": "0",
-                    "buyTokenAddress": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-                    "buyAmount": "63179691357410456145",
-                    "sellTokenAddress": "0x14af1f2f02dccb1e43402339099a05a5e363b83c",
-                    "sellAmount": "1000000000000000000000",
-                    "allowanceTarget": "0x6afD834f6e3D5ad5A83E7838ca45F3DBDe3E323d",
-                    "tx": {
-                      "from": "0x252ca143428929B2A351888ab14634629a9CF216",
-                      "to": "0x316766609569e00c3484fE9e558A35b975064a62",
-                      "data": "0xf08a8de4000000000000000000000000000000000000000000000000000000000000004000",
-                      "gas": 315000,
-                      "value": "0",
-                      "gasPrice": "124324285671"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+	"openapi": "3.0.1",
+	"info": {
+		"title": "MetaDexa API",
+		"description": "MetaDexa - Trading API",
+		"version": "1.0"
+	},
+	"servers": [
+		{
+			"url": "https://api.metadexa.io/",
+			"description": "Mainnet"
+		},
+		{
+			"url": "http://localhost:4001/",
+			"description": "Localhost dev"
+		}
+	],
+	"paths": {
+		"/v1.0/{chainId}/getQuote": {
+			"get": {
+				"tags": [
+					"Get Quote"
+				],
+				"description": "Fetches the best aggregated quotes for given trading pair",
+				"parameters": [
+					{
+						"name": "chainId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"enum": [
+								1,
+								42161,
+								10,
+								137,
+								8453
+							]
+						},
+						"example": 137
+					},
+					{
+						"name": "fromAddress",
+						"description": "address of the owner EOA",
+						"required": true,
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "0xe26F8f8A14251425Dd4E7f59f14eE5C0c2568956"
+					},
+					{
+						"name": "skipValidation",
+						"required": true,
+						"description": "true if example quote is needed. false if you need transaction with data ready to be executed",
+						"in": "query",
+						"schema": {
+							"type": "boolean"
+						},
+						"example": true
+					},
+					{
+						"name": "sellTokenAmount",
+						"description": "amount of token that will be sold",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "100000000000000"
+					},
+					{
+						"name": "sellTokenAddress",
+						"required": true,
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "0x14af1f2f02dccb1e43402339099a05a5e363b83c"
+					},
+					{
+						"name": "buyTokenAddress",
+						"required": true,
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
+					},
+					{
+						"name": "slippage",
+						"description": "Price slippage you are willing to accept, may be set with decimals. (e.g. slippage=0.005 means 0.5% slippage is acceptable; slippage=0.01 means 1% slippage is acceptable, etc.)",
+						"required": true,
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "0.005"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returns the best aggregated quotes for given trading pair",
+						"content": {
+							"application/json; charset=utf-8": {
+								"schema": {
+									"type": "object",
+									"example": {
+										"estimatedGas": 531962,
+										"buyTokenAddress": "0x14af1f2f02dccb1e43402339099a05a5e363b83c",
+										"buyAmount": "153047124858823786407",
+										"sellTokenAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+										"sellAmount": "10000000",
+										"allowanceTarget": "0x6afD834f6e3D5ad5A83E7838ca45F3DBDe3E323d",
+										"tx": {
+											"description": "txn object is present if skipValidation is false",
+											"from": "0x3510D70e9fFcF31C2Cb7c000CD65B0Ff2272CE66",
+											"to": "0x6afD834f6e3D5ad5A83E7838ca45F3DBDe3E323d",
+											"data": "0xe79f303b00000000000000000000000014af1f2f02dccb1e43402339099a05a5e363b83c0000",
+											"gas": 429013,
+											"value": "0",
+											"gasPrice": "30000000013"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1.0/{chainId}/getGaslessQuote": {
+			"get": {
+				"tags": [
+					"Get Gasless Quote"
+				],
+				"description": "Fetches the best Gasless aggregated quotes for given trading pair",
+				"parameters": [
+					{
+						"name": "chainId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"enum": [
+								1,
+								42161,
+								10,
+								137,
+								8453
+							]
+						},
+						"example": 137
+					},
+					{
+						"name": "fromAddress",
+						"required": true,
+						"description": "address of txn executor",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "0x252ca143428929B2A351888ab14634629a9CF216"
+					},
+					{
+						"name": "sellTokenAddress",
+						"description": "address of the token that will be sold",
+						"required": true,
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "0x14Af1F2f02DCcB1e43402339099A05a5E363b83c"
+					},
+					{
+						"name": "buyTokenAddress",
+						"description": "address of token that will be bought",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"example": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+					},
+					{
+						"name": "sellTokenAmount",
+						"description": "amount of token that will be sold",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "2000"
+					},
+					{
+						"name": "slippage",
+						"description": "Price slippage you are willing to accept, may be set with decimals. (e.g. slippage=0.005 means 0.5% slippage is acceptable; slippage=0.01 means 1% slippage is acceptable, etc.)",
+						"required": true,
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "0.005"
+					},
+					{
+						"name": "skipValidation",
+						"description": "whether txn hex data needs to be returned. It should be false if you want txn data ready for execution. True will give non validated quote, but without data ready for execution.",
+						"required": true,
+						"in": "query",
+						"schema": {
+							"type": "boolean"
+						},
+						"example": false
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returns the best Gasless aggregated quotes for given trading pair",
+						"content": {
+							"application/json; charset=utf-8": {
+								"schema": {
+									"type": "object",
+									"example": {
+										"estimatedGas": 240000,
+										"paymentTokenAddress": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+										"paymentFees": "0",
+										"buyTokenAddress": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+										"buyAmount": "63179691357410456145",
+										"sellTokenAddress": "0x14af1f2f02dccb1e43402339099a05a5e363b83c",
+										"sellAmount": "1000000000000000000000",
+										"allowanceTarget": "0x6afD834f6e3D5ad5A83E7838ca45F3DBDe3E323d",
+										"tx": {
+											"from": "0x252ca143428929B2A351888ab14634629a9CF216",
+											"to": "0x316766609569e00c3484fE9e558A35b975064a62",
+											"data": "0xf08a8de4000000000000000000000000000000000000000000000000000000000000004000",
+											"gas": 315000,
+											"value": "0",
+											"gasPrice": "124324285671"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1.0/{chainId}/limitOrder/history": {
+			"get": {
+				"tags": [
+					"Get Limit Order Positions "
+				],
+				"description": "Fetches the open and exexcuted order",
+				"parameters": [
+					{
+						"name": "chainId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"enum": [
+								1,
+								42161,
+								10,
+								137,
+								8453
+							]
+						},
+						"example": 137
+					},
+					{
+						"name": "account",
+						"description": "address of the owner EOA",
+						"required": true,
+						"in": "query",
+						"schema": {
+							"type": "string"
+						},
+						"example": "0xe26F8f8A14251425Dd4E7f59f14eE5C0c2568956"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Returns the best aggregated quotes for given trading pair",
+						"content": {
+							"application/json; charset=utf-8": {
+								"schema": {
+									"type": "object",
+									"example": {
+										"positions": [
+											{
+												"owner": "0x76142e5917aF78e2A58718A69b448fAf9486713a",
+												"tokenId": {
+													"type": "BigNumber",
+													"hex": "0x79"
+												},
+												"token0": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+												"token1": "0x14Af1F2f02DCcB1e43402339099A05a5E363b83c",
+												"fee": "3000",
+												"tickLower": "32100",
+												"tickUpper": "32160",
+												"liquidity": "12511302697134091118809",
+												"processed": false,
+												"tokensOwed0": "0",
+												"tokensOwed1": "187094679758139963439"
+											},
+											{
+												"owner": "0x76142e5917aF78e2A58718A69b448fAf9486713a",
+												"tokenId": {
+													"type": "BigNumber",
+													"hex": "0x7c"
+												},
+												"token0": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+												"token1": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+												"fee": "500",
+												"tickLower": "-281480",
+												"tickUpper": "-281470",
+												"liquidity": "0",
+												"processed": true,
+												"tokensOwed0": "305707431502002",
+												"tokensOwed1": "418611"
+											}
+										],
+										"fundingBalance": {
+											"numerator": [
+												625944321,
+												517312057,
+												86
+											],
+											"denominator": [
+												1
+											],
+											"currency": {
+												"chainId": 137,
+												"decimals": 18,
+												"symbol": "KROM",
+												"name": "Kromatika",
+												"isNative": false,
+												"isToken": true,
+												"address": "0x14Af1F2f02DCcB1e43402339099A05a5E363b83c"
+											},
+											"decimalScale": [
+												660865024,
+												931322574
+											]
+										},
+										"minBalance": {
+											"numerator": [
+												601799912,
+												654208013
+											],
+											"denominator": [
+												1
+											],
+											"currency": {
+												"chainId": 137,
+												"decimals": 18,
+												"symbol": "KROM",
+												"name": "Kromatika",
+												"isNative": false,
+												"isToken": true,
+												"address": "0x14Af1F2f02DCcB1e43402339099A05a5E363b83c"
+											},
+											"decimalScale": [
+												660865024,
+												931322574
+											]
+										},
+										"gasPrice": {
+											"numerator": [
+												963384144,
+												66
+											],
+											"denominator": [
+												1
+											],
+											"currency": {
+												"chainId": 137,
+												"decimals": 18,
+												"symbol": "MATIC",
+												"name": "Polygon Matic",
+												"isNative": true,
+												"isToken": false
+											},
+											"decimalScale": [
+												660865024,
+												931322574
+											]
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }

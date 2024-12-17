@@ -94,15 +94,8 @@ function normalizeOdosResponse(
 export default async function getOdosQuote(
 	request: RequestQuote,
 ): Promise<Result<AggregatorQuote, RequestError>> {
-	const {
-		sellTokenAmount,
-		fromAddress,
-		recipient,
-		chainId,
-		skipValidation,
-		affiliate,
-		affiliateFee,
-	} = request;
+	const { sellTokenAmount, fromAddress, recipient, chainId, skipValidation } =
+		request;
 	if (!fromAddress || fromAddress === '' || fromAddress === '0x') {
 		return new Err({
 			statusCode: 400,
@@ -131,7 +124,9 @@ export default async function getOdosQuote(
 		}
 
 		const quoteResponse = r.data as OdosQuoteResponse;
-		logger.debug('odos quote data', quoteResponse);
+		logger.silly(
+			`odos quote data ${JSON.stringify(quoteResponse, null, 4)}`,
+		);
 
 		if (
 			!quoteResponse.pathId ||
@@ -171,9 +166,11 @@ export default async function getOdosQuote(
 		if (r2.status !== 200) {
 			throw r2;
 		}
-		logger.debug('assemble request status', r2.status);
+		logger.silly(`assemble request status ${r2.status}`);
 		const assembleResponse: OdosAssembleResponse = r2.data;
-		logger.debug('assembleResponse', assembleResponse);
+		logger.silly(
+			`assembleResponse ${JSON.stringify(assembleResponse, null, 4)}`,
+		);
 		const normalizeodosResponse: AggregatorQuote = normalizeOdosResponse(
 			quoteResponse,
 			assembleResponse,
@@ -184,10 +181,7 @@ export default async function getOdosQuote(
 		);
 		return new Ok(normalizeodosResponse);
 	} catch (exception) {
-		logger.error(
-			`Odos exception - status code: ${exception?.toString()} `,
-			exception?.toString(),
-		);
+		logger.error(`Odos exception - status code: ${exception?.toString()}`);
 		return new Err({
 			statusCode: exception?.response?.status,
 			data: exception?.response?.data,
