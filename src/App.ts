@@ -100,7 +100,7 @@ export default class App {
 			account as string,
 			parseInt(chainId as string, 10),
 		);
-		if (!positions || positions.positions.length === 0) {
+		if (!positions) {
 			response.status(500).send('Error getting positions');
 		}
 		logger.debug(`positionss: ${JSON.stringify(positions, null, 4)}`);

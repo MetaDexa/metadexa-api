@@ -125,11 +125,16 @@ export async function getV3Positions(
 				  )
 				: [];
 		logger.silly(`tokenIds ${tokenIds}`);
-		const positions = (await getV3PositionsFromTokenIds(
-			tokenIds,
-			chainId,
-		)) satisfies GetV3PositionsResults;
 
+		const positions = await getV3PositionsFromTokenIds(tokenIds, chainId);
+
+		if (positions.positions.length === 0)
+			return {
+				positions: positions.positions,
+				fundingBalance: undefined,
+				minBalance: undefined,
+				gasPrice: undefined,
+			};
 		const fundingResult = await limitOrderManager.methods
 			.funding(account)
 			.call();
