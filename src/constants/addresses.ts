@@ -76,11 +76,11 @@ export const ODOS_AGGREGATOR_ADDRESS: AddressMap = {
 };
 
 export const PROVIDER_ADDRESS: AddressMap = {
-	[SupportedChainId.POLYGON]: 'https://polygon-rpc.com',
+	[SupportedChainId.POLYGON]: 'https://rpc.ankr.com/polygon/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
 	[SupportedChainId.ARBITRUM_ONE]:
-		'https://arbitrum.blockpi.network/v1/rpc/public',
+		'https://rpc.ankr.com/arbitrum/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
 	[SupportedChainId.MAINNET]:
-		'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-	[SupportedChainId.OPTIMISM]: 'https://mainnet.optimism.io',
-	[SupportedChainId.BASE]: 'https://base.llamarpc.com	',
+		'https://rpc.ankr.com/eth/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.OPTIMISM]: 'https://rpc.ankr.com/optimism/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.BASE]: 'https://rpc.ankr.com/base/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
 };
