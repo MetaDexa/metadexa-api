@@ -7,7 +7,6 @@ import swaggerUi from 'swagger-ui-express';
 import registerRoutes from './routes';
 import addErrorHandler from './middleware/error-handler';
 import getBestQuote from './components/GetBestQuote';
-import { RequestQuote } from './interfaces/RequestQuote';
 import mapToRequestQuote from './components/mapRequestQuote';
 import { RequestError } from './interfaces/RequestError';
 import getGaslessQuote from './components/GetGaslessQuote';
@@ -15,6 +14,8 @@ import { ResultGaslessQuote } from './interfaces/ResultGaslessQuote';
 import { CompositeQuote } from './interfaces/CompositeQuote';
 import SwaggerDocsOptions from '../swagger.json';
 import logger from './lib/logger';
+import { getV3Positions } from './utils/getV3Positions';
+import { RequestQuote } from './interfaces/RequestQuote';
 
 export default class App {
 	public express: express.Application;
@@ -26,7 +27,7 @@ export default class App {
 		this.httpServer = http.createServer(this.express);
 		this.middleware();
 		this.routes();
-		this.addErrorHandler();
+		this.addErrorHandler(); // I don't think this one is working ?
 	}
 
 	/**
@@ -38,6 +39,10 @@ export default class App {
 		this.express.get(
 			'/:apiVersion/:chainId/getGaslessQuote',
 			this.getGaslessRoute,
+		);
+		this.express.get(
+			'/:apiVersion/:chainId/limitOrder/history',
+			this.getLimitHistoryRoute,
 		);
 		this.express.get('/web', this.parseRequestHeader, this.basePathRoute);
 		registerRoutes(this.express);
@@ -69,7 +74,9 @@ export default class App {
 		// eslint-disable-next-line @typescript-eslint/ban-types
 		next: Function,
 	): void {
-		logger.debug('Request headers:', req.headers);
+		logger.debug(
+			`Request headers: ${JSON.stringify(req.headers, null, 4)}`,
+		);
 		next();
 	}
 
@@ -78,6 +85,26 @@ export default class App {
 		response: express.Response,
 	): void {
 		response.sendFile('./index.html');
+	}
+
+	private async getLimitHistoryRoute(
+		request: express.Request,
+		response: express.Response,
+	): Promise<void> {
+		const { account } = request.query;
+		const { chainId } = request.params;
+		logger.debug(
+			`chainId ${parseInt(chainId as string, 10)} account ${account}`,
+		);
+		const positions = await getV3Positions(
+			account as string,
+			parseInt(chainId as string, 10),
+		);
+		if (!positions) {
+			response.status(500).send('Error getting positions');
+		}
+		logger.debug(`positionss: ${JSON.stringify(positions, null, 4)}`);
+		response.status(200).send(positions);
 	}
 
 	private async getSwapRoute(

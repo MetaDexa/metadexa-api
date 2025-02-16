@@ -40,7 +40,7 @@ coverage/*
 /src/public/
  
 # custom definition files
-/src/types/
+# /src/types/
 
 /test
 
