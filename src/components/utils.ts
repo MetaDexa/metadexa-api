@@ -15,6 +15,8 @@ import {
 import { ForwarderRequest } from '../interfaces/ForwarderRequest';
 import validatorSign from './RelayerSignature';
 import { RequestError } from '../interfaces/RequestError';
+import { createPublicClient, http } from 'viem'
+import { SUPPORTED_CHAINS } from '../constants/constants';
 
 export async function estimateGas(
 	chainId: number,
@@ -23,21 +25,26 @@ export async function estimateGas(
 	to: string,
 	data: string,
 ): Promise<Result<number, RequestError>> {
-	const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
-	try {
-		const estimate = await web3.eth.estimateGas({
-			to,
-			from,
-			data,
-			value,
-		});
+	// todo: refactor - this might need to be created as a instance
+	const publicClient = createPublicClient({
+		chain: SUPPORTED_CHAINS[chainId],
+		transport: http(PROVIDER_ADDRESS[chainId]),
+	});
 
-		return new Ok(estimate);
+	const gas = await publicClient.estimateGas({
+		account: from,
+		to,
+		data,
+		value,
+	})
+
+	try {
+		return new Ok(Number(gas.toString()));
 	} catch (error) {
 		return new Err({
 			statusCode: 500,
-			data: `Gas estimation failed: ${error}`,
-		});
+			data: `Utils.ts: Gas estimation failed: ${error}`,
+		})
 	}
 }
 

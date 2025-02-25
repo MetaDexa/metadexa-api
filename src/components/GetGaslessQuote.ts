@@ -1,4 +1,3 @@
-import Web3 from 'web3';
 import { Ok, Err, Result } from 'ts-results';
 import {
 	WHITELISTED_TOKENS,
@@ -23,12 +22,24 @@ import simulateTransaction, {
 	buildGaslessAggregatorCallData,
 	getTransactionData,
 } from './utils';
+import { createPublicClient, http } from 'viem'
+import { SUPPORTED_CHAINS} from '../constants/constants';
+import BigNumber from 'bignumber.js';
+
+
+function getViemPublicClient(chainId: number){
+	return createPublicClient({
+		chain: SUPPORTED_CHAINS[chainId],
+		transport: http(PROVIDER_ADDRESS[chainId]),
+	});
+}
+
 
 async function getGasPrice(chainId: number): Promise<Result<string, Error>> {
-	const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
+	const publicClient = getViemPublicClient(chainId);
 	try {
-		const gasPrice = await web3.eth.getGasPrice();
-		return new Ok(gasPrice);
+		const viemGasPrice = await publicClient.getGasPrice()
+		return new Ok(viemGasPrice.toString());
 	} catch (error) {
 		return new Err(new Error(`Gas price failed: ${error.message}`));
 	}
@@ -89,7 +100,7 @@ async function getValidatorGaslessQuote(
 	}
 	// validation not skipped;
 
-	const signer = await getSigner(request.chainId);
+	const signer = await getSigner();
 
 	// start building calldata
 	const aggregatorCallData = buildGaslessAggregatorCallData(
@@ -179,16 +190,14 @@ function getGasFees(
 	gasPrice: any,
 	estimatedGas: number,
 ) {
-	const web3 = new Web3();
-	if (FREE_SWAPS_CAMPAIGN[request.chainId]) return web3.utils.toBN('0');
+
+	if (FREE_SWAPS_CAMPAIGN[request.chainId]) return new BigNumber(0);
 
 	// todo: add check for whitelisted tokens here
 
 	// todo: add check for whitelisted users here
 
-	return web3.utils
-		.toBN(gasPrice.unwrap())
-		.mul(web3.utils.toBN(estimatedGas).add(web3.utils.toBN(GAS_OVERHEAD)));
+	return  new BigNumber(gasPrice.unwrap()).multipliedBy(new BigNumber(estimatedGas).plus(new BigNumber(GAS_OVERHEAD)));
 }
 
 export default async function getGaslessQuote(

@@ -8,7 +8,6 @@ import {
 	PROVIDER_ADDRESS,
 } from '../constants/addresses';
 import getZeroXQuote from './getZeroXQuote';
-import getOneInchQuote from './getOneInchQuote';
 import compareRoutes from './compareRoutes';
 import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
 import { RequestQuote } from '../interfaces/RequestQuote';
@@ -16,14 +15,19 @@ import { CompositeQuote } from '../interfaces/CompositeQuote';
 import { divCeil } from './utils';
 import getOdosQuote from './getOdosQuote';
 import logger from '../lib/logger';
+import { createPublicClient, http } from 'viem'
+import { SUPPORTED_CHAINS } from '../constants/constants'
 
 async function getGasPrice(chainId: number): Promise<Result<string, Error>> {
-	const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
+	const publicClient = createPublicClient({
+		chain: SUPPORTED_CHAINS[chainId],
+		transport: http(PROVIDER_ADDRESS[chainId]),
+	});
 	try {
-		const gasPrice = await web3.eth.getGasPrice();
-		return new Ok(gasPrice);
+		const gasPrice = await publicClient.getGasPrice()
+		return new Ok(gasPrice.toString());
 	} catch (error) {
-		return new Err(new Error(`Gas price failed: ${error.message}`));
+		return new Err(new Error(`GetBestQuote: Fetching gas price failed: ${error.message}`));
 	}
 }
 
@@ -34,21 +38,27 @@ async function estimateGas(
 	chainId: number,
 	data: string,
 ): Promise<Result<number, Error>> {
-	const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
+	// todo: refactor this;
+	const publicClient = createPublicClient({
+		chain: SUPPORTED_CHAINS[chainId],
+		transport: http(PROVIDER_ADDRESS[chainId]),
+	});
+
 	try {
-		const estimate = await web3.eth.estimateGas({
+		const gas = await publicClient.estimateGas({
+			account: from,
 			to,
-			from,
 			data,
 			value,
-		});
+		})
 
-		return new Ok(estimate);
+		return new Ok(Number(gas.toString()));
 	} catch (error) {
-		return new Err(new Error(`Gas estimation error: ${error.message}`));
+		return new Err(new Error(`GetBestQuote: Gas estimation error: ${error.message}`));
 	}
 }
 
+// dont bother, we have router everywhere
 async function getRouterlessTransactionData(
 	betterRoute: AggregatorQuote,
 	slippage: string,
@@ -136,7 +146,7 @@ async function getTransactionData(
 	const aggregator = betterRoute.to;
 
 	const aggregatorData = betterRoute.data;
-	const adapterId = 'SwapAggregator';
+	const adapterId = 'SwapAggregator';		// todo: revisit when deploying gasless
 	const adapterData: string = web3.eth.abi.encodeParameter(
 		'tuple(address,address,uint256,uint256,address,bytes)',
 		[tokenFrom, tokenTo, amountFrom, minAmount, aggregator, aggregatorData],
