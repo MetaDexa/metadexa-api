@@ -1,11 +1,14 @@
 import Web3 from 'web3';
 import { Ok, Err, Result } from 'ts-results';
 import BigNumber from 'bignumber.js';
+import { ethers } from 'ethers/lib';
 import { TransactionData } from '../interfaces/ResultQuote';
 import { RequestError } from '../interfaces/RequestError';
 import {
+	ALCHEMY_PROVIDER_URL,
+	ANKR_PROVIDER_URL,
+	INFURA_PROVIDER_URL,
 	METASWAP_ROUTER_CONTRACT_ADDRESS,
-	PROVIDER_ADDRESS,
 } from '../constants/addresses';
 import getZeroXQuote from './getZeroXQuote';
 import compareRoutes from './compareRoutes';
@@ -15,19 +18,45 @@ import { CompositeQuote } from '../interfaces/CompositeQuote';
 import { divCeil } from './utils';
 import getOdosQuote from './getOdosQuote';
 import logger from '../lib/logger';
-import { createPublicClient, http } from 'viem'
-import { SUPPORTED_CHAINS } from '../constants/constants'
 
+async function etherFallbackProvider(chainId: number) {
+	const providers = [
+		{
+			provider: new ethers.providers.JsonRpcProvider(
+				INFURA_PROVIDER_URL[chainId],
+			),
+			weight: 3,
+			priority: 3,
+		},
+		{
+			provider: new ethers.providers.JsonRpcProvider(
+				ALCHEMY_PROVIDER_URL[chainId],
+			),
+			weight: 2,
+			priority: 2,
+		},
+		{
+			provider: new ethers.providers.JsonRpcProvider(
+				ANKR_PROVIDER_URL[chainId],
+			),
+			weight: 1,
+			priority: 1,
+		},
+	];
+
+	return new ethers.providers.FallbackProvider(providers, 1);
+}
 async function getGasPrice(chainId: number): Promise<Result<string, Error>> {
-	const publicClient = createPublicClient({
-		chain: SUPPORTED_CHAINS[chainId],
-		transport: http(PROVIDER_ADDRESS[chainId]),
-	});
+	const provider = await etherFallbackProvider(chainId);
 	try {
-		const gasPrice = await publicClient.getGasPrice()
+		const gasPrice = await provider.getGasPrice();
 		return new Ok(gasPrice.toString());
 	} catch (error) {
-		return new Err(new Error(`GetBestQuote: Fetching gas price failed: ${error.message}`));
+		return new Err(
+			new Error(
+				`GetBestQuote: Fetching gas price failed: ${error.message}`,
+			),
+		);
 	}
 }
 
@@ -38,23 +67,32 @@ async function estimateGas(
 	chainId: number,
 	data: string,
 ): Promise<Result<number, Error>> {
-	// todo: refactor this;
-	const publicClient = createPublicClient({
-		chain: SUPPORTED_CHAINS[chainId],
-		transport: http(PROVIDER_ADDRESS[chainId]),
-	});
-
+	const ethersProvider = await etherFallbackProvider(chainId);
+	const latestBlockNumber = await ethersProvider.getBlockNumber();
+	const block = await ethersProvider.getBlock(latestBlockNumber);
+	const tx = {
+		from,
+		to,
+		data,
+		value,
+		gasLimit: block.gasLimit,
+	};
 	try {
-		const gas = await publicClient.estimateGas({
-			account: from,
+		const gas = await ethersProvider.estimateGas({
+			from,
 			to,
 			data,
 			value,
-		})
-
+			gasLimit: block.gasLimit,
+		});
 		return new Ok(Number(gas.toString()));
 	} catch (error) {
-		return new Err(new Error(`GetBestQuote: Gas estimation error: ${error.message}`));
+		await ethersProvider
+			.call(tx)
+			.catch((e) => console.log('Revert:', e.reason));
+		return new Err(
+			new Error(`GetBestQuote: Gas estimation error: ${error.message}`),
+		);
 	}
 }
 
@@ -90,16 +128,9 @@ async function getRouterlessTransactionData(
 	return new Ok(result);
 }
 
-async function getTransactionData(
-	betterRoute: AggregatorQuote,
-	slippage: string,
-	chainId: number,
-): Promise<Result<TransactionData, RequestError>> {
+function getAmountFrom(betterRoute: AggregatorQuote, slippage: string){
 	const web3 = new Web3();
-
-	const tokenFrom = betterRoute.sellTokenAddress;
-	const tokenTo = betterRoute.buyTokenAddress;
-	const amountFrom =
+	const originalAmountFrom =
 		betterRoute.tradeType === TradeType.ExactInput
 			? web3.utils.toHex(betterRoute.sellAmount)
 			: web3.utils.toHex(
@@ -120,7 +151,19 @@ async function getTransactionData(
 						web3.utils.toBN(100000),
 					),
 			  );
+	return originalAmountFrom;
+}
 
+async function getTransactionData(
+	betterRoute: AggregatorQuote,
+	slippage: string,
+	chainId: number,
+): Promise<Result<TransactionData, RequestError>> {
+	const web3 = new Web3();
+
+	const tokenFrom = betterRoute.sellTokenAddress;
+	const tokenTo = betterRoute.buyTokenAddress;
+	const amountFrom = getAmountFrom(betterRoute, slippage);
 	const minAmount =
 		betterRoute.tradeType === TradeType.ExactInput
 			? web3.utils.toHex(
@@ -146,7 +189,7 @@ async function getTransactionData(
 	const aggregator = betterRoute.to;
 
 	const aggregatorData = betterRoute.data;
-	const adapterId = 'SwapAggregator';		// todo: revisit when deploying gasless
+	const adapterId = 'SwapAggregator'; // todo: revisit when deploying gasless
 	const adapterData: string = web3.eth.abi.encodeParameter(
 		'tuple(address,address,uint256,uint256,address,bytes)',
 		[tokenFrom, tokenTo, amountFrom, minAmount, aggregator, aggregatorData],
@@ -270,7 +313,7 @@ export default async function getBestQuote(
 	const [zeroXQuote, odosQuote] = await Promise.all([
 		getZeroXQuote(request),
 		getOdosQuote(request),
-		//getOneInchQuote(request, request.skipValidation),
+		// getOneInchQuote(request, request.skipValidation),
 	]);
 
 	const aggregatorQuotes: Result<AggregatorQuote, RequestError>[] = [

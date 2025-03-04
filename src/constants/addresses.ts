@@ -76,11 +76,53 @@ export const ODOS_AGGREGATOR_ADDRESS: AddressMap = {
 };
 
 export const PROVIDER_ADDRESS: AddressMap = {
-	[SupportedChainId.POLYGON]: 'https://rpc.ankr.com/polygon/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.POLYGON]:
+		'https://rpc.ankr.com/polygon/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
 	[SupportedChainId.ARBITRUM_ONE]:
 		'https://rpc.ankr.com/arbitrum/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
 	[SupportedChainId.MAINNET]:
 		'https://rpc.ankr.com/eth/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
-	[SupportedChainId.OPTIMISM]: 'https://rpc.ankr.com/optimism/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
-	[SupportedChainId.BASE]: 'https://rpc.ankr.com/base/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.OPTIMISM]:
+		'https://rpc.ankr.com/optimism/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.BASE]:
+		'https://rpc.ankr.com/base/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+};
+
+export const ANKR_PROVIDER_URL: AddressMap = {
+	[SupportedChainId.POLYGON]:
+		'https://rpc.ankr.com/polygon/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.ARBITRUM_ONE]:
+		'https://rpc.ankr.com/arbitrum/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.MAINNET]:
+		'https://rpc.ankr.com/eth/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.OPTIMISM]:
+		'https://rpc.ankr.com/optimism/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.BASE]:
+		'https://rpc.ankr.com/base/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+};
+
+export const ALCHEMY_PROVIDER_URL: AddressMap = {
+	[SupportedChainId.POLYGON]:
+		'https://polygon-mainnet.g.alchemy.com/v2/2XhoUzltnF5XtxlWvMi78ksAQIsZeILH',
+	[SupportedChainId.ARBITRUM_ONE]:
+		'https://arb-mainnet.g.alchemy.com/v2/2XhoUzltnF5XtxlWvMi78ksAQIsZeILH',
+	[SupportedChainId.MAINNET]:
+		'https://eth-mainnet.g.alchemy.com/v2/2XhoUzltnF5XtxlWvMi78ksAQIsZeILH',
+	[SupportedChainId.OPTIMISM]:
+		'https://opt-mainnet.g.alchemy.com/v2/2XhoUzltnF5XtxlWvMi78ksAQIsZeILH',
+	[SupportedChainId.BASE]:
+		'https://base-mainnet.g.alchemy.com/v2/2XhoUzltnF5XtxlWvMi78ksAQIsZeILH',
+};
+
+export const INFURA_PROVIDER_URL: AddressMap = {
+	[SupportedChainId.POLYGON]:
+		'https://polygon-mainnet.infura.io/v3/e37acc9b5b1a4378b9120d7f12a77700',
+	[SupportedChainId.ARBITRUM_ONE]:
+		'https://arbitrum-mainnet.infura.io/v3/e37acc9b5b1a4378b9120d7f12a77700',
+	[SupportedChainId.MAINNET]:
+		'https://mainnet.infura.io/v3/e37acc9b5b1a4378b9120d7f12a77700',
+	[SupportedChainId.OPTIMISM]:
+		'https://optimism-mainnet.infura.io/v3/e37acc9b5b1a4378b9120d7f12a77700',
+	[SupportedChainId.BASE]:
+		'https://base-mainnet.infura.io/v3/e37acc9b5b1a4378b9120d7f12a77700',
 };

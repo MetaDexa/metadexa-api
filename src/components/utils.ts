@@ -1,13 +1,18 @@
 import Web3 from 'web3';
 import { Err, Ok, Result } from 'ts-results';
 import BigNumber from 'bignumber.js';
-import { GAS_MARGIN } from '../constants/constants';
+import { createPublicClient, http } from 'viem';
+import { ethers } from 'ethers/lib';
+import { GAS_MARGIN, SUPPORTED_CHAINS } from '../constants/constants';
 import { ResultQuote } from '../interfaces/ResultQuote';
 import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
 import { CompositeQuote } from '../interfaces/CompositeQuote';
 import { TransactionData } from '../interfaces/ResultGaslessQuote';
 import {
+	ALCHEMY_PROVIDER_URL,
+	ANKR_PROVIDER_URL,
 	FORWARDER_ADDRESS,
+	INFURA_PROVIDER_URL,
 	METASWAP_ROUTER_CONTRACT_ADDRESS,
 	MULTICALL_ADDRESS,
 	PROVIDER_ADDRESS,
@@ -15,8 +20,34 @@ import {
 import { ForwarderRequest } from '../interfaces/ForwarderRequest';
 import validatorSign from './RelayerSignature';
 import { RequestError } from '../interfaces/RequestError';
-import { createPublicClient, http } from 'viem'
-import { SUPPORTED_CHAINS } from '../constants/constants';
+
+async function etherFallbackProvider(chainId: number) {
+	const providers = [
+		{
+			provider: new ethers.providers.JsonRpcProvider(
+				INFURA_PROVIDER_URL[chainId],
+			),
+			weight: 3,
+			priority: 3,
+		},
+		{
+			provider: new ethers.providers.JsonRpcProvider(
+				ALCHEMY_PROVIDER_URL[chainId],
+			),
+			weight: 2,
+			priority: 2,
+		},
+		{
+			provider: new ethers.providers.JsonRpcProvider(
+				ANKR_PROVIDER_URL[chainId],
+			),
+			weight: 1,
+			priority: 1,
+		},
+	];
+
+	return new ethers.providers.FallbackProvider(providers, 1);
+}
 
 export async function estimateGas(
 	chainId: number,
@@ -25,27 +56,121 @@ export async function estimateGas(
 	to: string,
 	data: string,
 ): Promise<Result<number, RequestError>> {
-	// todo: refactor - this might need to be created as a instance
-	const publicClient = createPublicClient({
-		chain: SUPPORTED_CHAINS[chainId],
-		transport: http(PROVIDER_ADDRESS[chainId]),
-	});
-
-	const gas = await publicClient.estimateGas({
-		account: from,
+	const ethersProvider = await etherFallbackProvider(chainId);
+	const latestBlockNumber = await ethersProvider.getBlockNumber();
+	const block = await ethersProvider.getBlock(latestBlockNumber);
+	const tx = {
+		from,
 		to,
 		data,
 		value,
-	})
-
+		gasLimit: block.gasLimit,
+	};
 	try {
+		const gas = await ethersProvider.estimateGas({
+			from,
+			to,
+			data,
+			value,
+			gasLimit: block.gasLimit,
+		});
 		return new Ok(Number(gas.toString()));
 	} catch (error) {
+		await ethersProvider
+			.call(tx)
+			.catch((e) => console.log('Revert:', e.reason));
 		return new Err({
 			statusCode: 500,
 			data: `Utils.ts: Gas estimation failed: ${error}`,
-		})
+		});
 	}
+}
+
+async function encodeDataForForwarderRequest(
+	forwardRequest: ForwarderRequest,
+	validatorSignature: string,
+) {
+	const forwarderInterface = new ethers.utils.Interface([
+		{
+			inputs: [
+				{
+					components: [
+						{
+							internalType: 'address',
+							name: 'validator',
+							type: 'address',
+						},
+						{
+							internalType: 'address',
+							name: 'targetAddress',
+							type: 'address',
+						},
+						{
+							internalType: 'bytes',
+							name: 'data',
+							type: 'bytes',
+						},
+						{
+							internalType: 'address',
+							name: 'paymentToken',
+							type: 'address',
+						},
+						{
+							internalType: 'uint256',
+							name: 'paymentFees',
+							type: 'uint256',
+						},
+						{
+							internalType: 'uint256',
+							name: 'tokenGasPrice',
+							type: 'uint256',
+						},
+						{
+							internalType: 'uint256',
+							name: 'validTo',
+							type: 'uint256',
+						},
+						{
+							internalType: 'uint256',
+							name: 'nonce',
+							type: 'uint256',
+						},
+					],
+					internalType: 'struct IForwarder.ForwardRequest',
+					name: 'request',
+					type: 'tuple',
+				},
+				{
+					internalType: 'bytes',
+					name: 'validatorSignature',
+					type: 'bytes',
+				},
+			],
+			name: 'executeCall',
+			outputs: [],
+			stateMutability: 'payable',
+			type: 'function',
+		},
+	]);
+
+	const encodedForwarderData2 = forwarderInterface.encodeFunctionData(
+		'executeCall',
+		[
+			[
+				forwardRequest.signer,
+				forwardRequest.metaswap,
+				forwardRequest.calldata,
+				forwardRequest.paymentToken,
+				forwardRequest.paymentFees,
+				forwardRequest.tokenGasPrice,
+				forwardRequest.validTo,
+				forwardRequest.nonce,
+			],
+			validatorSignature,
+		],
+	);
+
+	return encodedForwarderData2;
 }
 
 export async function getTransactionData(
@@ -55,88 +180,11 @@ export async function getTransactionData(
 	gasPrice: string,
 	chainId: number,
 ): Promise<Result<TransactionData, RequestError>> {
-	const web3 = new Web3();
-
 	try {
-		const encodedForwarderData = web3.eth.abi.encodeFunctionCall(
-			{
-				inputs: [
-					{
-						components: [
-							{
-								internalType: 'address',
-								name: 'validator',
-								type: 'address',
-							},
-							{
-								internalType: 'address',
-								name: 'targetAddress',
-								type: 'address',
-							},
-							{
-								internalType: 'bytes',
-								name: 'data',
-								type: 'bytes',
-							},
-							{
-								internalType: 'address',
-								name: 'paymentToken',
-								type: 'address',
-							},
-							{
-								internalType: 'uint256',
-								name: 'paymentFees',
-								type: 'uint256',
-							},
-							{
-								internalType: 'uint256',
-								name: 'tokenGasPrice',
-								type: 'uint256',
-							},
-							{
-								internalType: 'uint256',
-								name: 'validTo',
-								type: 'uint256',
-							},
-							{
-								internalType: 'uint256',
-								name: 'nonce',
-								type: 'uint256',
-							},
-						],
-						internalType: 'struct IForwarder.ForwardRequest',
-						name: 'request',
-						type: 'tuple',
-					},
-					{
-						internalType: 'bytes',
-						name: 'validatorSignature',
-						type: 'bytes',
-					},
-				],
-				name: 'executeCall',
-				outputs: [],
-				stateMutability: 'payable',
-				type: 'function',
-				payable: true,
-			},
-			[
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore
-				[
-					forwardRequest.signer,
-					forwardRequest.metaswap,
-					forwardRequest.calldata,
-					forwardRequest.paymentToken,
-					forwardRequest.paymentFees,
-					forwardRequest.tokenGasPrice,
-					forwardRequest.validTo,
-					forwardRequest.nonce,
-				],
-				validatorSignature,
-			],
+		const encodedForwarderData = await encodeDataForForwarderRequest(
+			forwardRequest,
+			validatorSignature,
 		);
-
 		const estimatedGas = await estimateGas(
 			chainId,
 			from,
