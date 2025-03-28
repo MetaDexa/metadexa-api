@@ -31,6 +31,7 @@ export default function compareRoutes(
 	});
 
 	if (bestQuotes.length > 0) {
+		logger.debug('Best Quote is', bestQuotes[0].unwrap());
 		return bestQuotes[0];
 	}
 
