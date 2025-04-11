@@ -1,6 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import qs from 'qs';
 import { Ok, Err, Result } from 'ts-results';
+import { ZEROX_ALLOWANCE_HOLDER_CONTRACT } from '../constants/addresses';
 import { QUOTE_REQUEST_TIMEOUT } from '../constants/constants';
 import { ZeroXQuoteResponse } from '../interfaces/ZeroX/ZeroXQuoteResponse';
 import {
@@ -16,104 +17,109 @@ import logger from '../lib/logger';
 function createQueryStringRequestObject(
 	request: RequestQuote,
 ): ZeroXRequestParameters {
-	return {
-		sellToken: request.sellTokenAddress,
+	const parameters = {
+		chainId: request.chainId,
 		buyToken: request.buyTokenAddress,
-		slippagePercentage: request.slippage,
-		feeRecipient:
-			request.affiliate !== '' || request.affiliate !== undefined
-				? request.affiliate
-				: null,
-		buyTokenPercentage:
-			(request.affiliateFee !== '' ||
-				request.affiliateFee !== undefined) &&
-			request.affiliate
-				? request.affiliateFee
-				: null,
-		skipValidation: true,
+		sellToken: request.sellTokenAddress,
 		sellAmount:
 			request.sellTokenAmount !== '' &&
 			request.sellTokenAmount !== undefined
 				? request.sellTokenAmount
 				: null,
-		buyAmount:
-			request.buyTokenAmount !== '' &&
-			request.buyTokenAmount !== undefined
-				? request.buyTokenAmount
+		taker: request.fromAddress,
+		txOrigin: null,
+		swapFeeRecipient:
+			request.affiliate !== '' || request.affiliate !== undefined
+				? request.affiliate
 				: null,
-		takerAddress: request.fromAddress,
-	};
+		swapFeeBps: request.affiliate
+			? parseInt(request.affiliateFee, 10) // ?
+			: undefined,
+		swapFeeToken: request.affiliate ? request.sellTokenAddress : undefined,
+		tradeSurplusRecipient: request.affiliate,
+		gasPrice: null,
+		slippageBps: parseFloat(request.slippage) * 10000, // The slippage input is decimal, we need basis points (bps)
+		excludedSources: null,
+		sellEntireBalance: false,
+	} as ZeroXRequestParameters;
+	return parameters;
 }
 
 function normalizeZeroXResponse(
 	response: ZeroXQuoteResponse,
-	isSellAmount: boolean,
 	from: string,
 	recipient: string,
+	chainId: number,
 ): AggregatorQuote {
-	return {
-		to: response.to,
-		data: response.data,
-		value: response.value,
-		estimatedGas: response.estimatedGas,
-		buyTokenAddress: response.buyTokenAddress,
+	const aggregatorQuote = {
+		to: response.transaction ? response.transaction.to : undefined,
+		data: response.transaction ? response.transaction.data : undefined,
+		value: response.transaction ? response.transaction.value : undefined,
+		estimatedGas: response.transaction
+			? parseInt(response.transaction.gas, 10)
+			: response.gas,
+		buyTokenAddress: response.buyToken,
 		buyAmount: response.buyAmount,
-		sellTokenAddress: response.sellTokenAddress,
+		sellTokenAddress: response.sellToken,
 		sellAmount: response.sellAmount,
-		allowanceTarget: response.allowanceTarget,
+		allowanceTarget: ZEROX_ALLOWANCE_HOLDER_CONTRACT[chainId],
 		from,
 		recipient,
-		tradeType: isSellAmount ? TradeType.ExactInput : TradeType.ExactOutput,
+		tradeType: TradeType.ExactInput,
 		aggregatorName: AggregatorName.ZeroX,
-	};
+	} as AggregatorQuote;
+	return aggregatorQuote;
 }
 
 export default async function getZeroXQuote(
 	request: RequestQuote,
 ): Promise<Result<AggregatorQuote, RequestError>> {
-	const { sellTokenAmount, fromAddress, recipient, chainId } = request;
+	const { sellTokenAmount, fromAddress, recipient, chainId, skipValidation } =
+		request;
+	if (!sellTokenAmount) {
+		return undefined;
+	}
 	const queryString = createQueryStringRequestObject(request);
-	const endpoints = {
-		1: 'api.0x.org',
-		137: 'polygon.api.0x.org',
-		10: 'optimism.api.0x.org',
-		42161: 'arbitrum.api.0x.org',
-		8453: 'base.api.0x.org',
-	};
-
+	const baseUrl = 'https://api.0x.org';
 	try {
 		const instance = axios.create();
 		instance.defaults.timeout = QUOTE_REQUEST_TIMEOUT;
 
 		const config = {
 			headers: {
-				'0x-api-key': process.env.ZEROX_API_KEY,
+				'0x-api-key': process.env.ZEROX_V2_API_KEY,
+				'0x-version': 'v2',
 			},
 		};
+		const fullUrl = `${baseUrl}${
+			skipValidation
+				? '/swap/allowance-holder/price'
+				: '/swap/allowance-holder/quote'
+		}?${qs.stringify(queryString, {
+			strictNullHandling: true,
+			skipNulls: true,
+		})}`;
 
-		const r = await instance.get(
-			`https://${endpoints[chainId]}/swap/v1/quote?${qs.stringify(
-				queryString,
-				{
-					strictNullHandling: true,
-					skipNulls: true,
-				},
-			)}`,
-			config,
-		);
+		// If skipValidation is true, we ask for a quote without calldata (/price) else, /quote
+		const r = await instance.get(fullUrl, config);
 
-		return new Ok(
-			normalizeZeroXResponse(
-				r.data,
-				!!sellTokenAmount,
-				fromAddress,
-				recipient,
-			),
+		const zeroXQuoteResponse: ZeroXQuoteResponse = r.data;
+		const normalizedResponse: AggregatorQuote = normalizeZeroXResponse(
+			zeroXQuoteResponse,
+			fromAddress,
+			recipient,
+			chainId,
 		);
+		return new Ok(normalizedResponse);
 	} catch (exception) {
 		logger.error(
-			`ZeroX exception - status code: ${exception?.toString()} `,
-			exception?.toString(),
+			`ZeroX exception - ${exception?.toString()}: ${
+				exception.response.data.message
+			} - ${JSON.stringify(
+				exception.response.data.data.details,
+				null,
+				4,
+			)}`,
 		);
 		return new Err({
 			statusCode: exception?.response?.status,
