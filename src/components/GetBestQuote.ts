@@ -1,4 +1,3 @@
-//import Web3 from 'web3';
 import { Ok, Err, Result } from 'ts-results';
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers/lib';
@@ -87,9 +86,9 @@ async function estimateGas(
 		});
 		return new Ok(Number(gas.toString()));
 	} catch (error) {
-		await ethersProvider
-			.call(tx)
-			.catch((e) => console.log('Revert:', e.reason));
+		// await ethersProvider
+		// 	.call(tx)
+		// 	.catch((e) => console.log('Revert:', e.reason));
 		return new Err(
 			new Error(`GetBestQuote: Gas estimation error: ${error.message}`),
 		);
@@ -143,29 +142,6 @@ export function divCeil2(
 }
 
 function getAmountFrom(betterRoute: AggregatorQuote, slippage: string) {
-	//const web3 = new Web3();
-	// const originalAmountFrom =
-	// 	betterRoute.tradeType === TradeType.ExactInput
-	// 		? web3.utils.toHex(betterRoute.sellAmount)
-	// 		: web3.utils.toHex(
-	// 				divCeil(
-	// 					web3.utils
-	// 						.toBN(betterRoute.sellAmount)
-	// 						.mul(
-	// 							web3.utils
-	// 								.toBN(100000)
-	// 								.add(
-	// 									web3.utils.toBN(
-	// 										new BigNumber(slippage)
-	// 											.multipliedBy(100000)
-	// 											.toString(),
-	// 									),
-	// 								),
-	// 						),
-	// 					web3.utils.toBN(100000),
-	// 				),
-	// 		  );
-
 	const newAmountFrom =
 		betterRoute.tradeType === TradeType.ExactInput
 			? ethers.BigNumber.from(betterRoute.sellAmount).toHexString() // Convert to BigNumber first, then to hex
@@ -185,29 +161,6 @@ function getAmountFrom(betterRoute: AggregatorQuote, slippage: string) {
 }
 
 function getMinAmountFrom(betterRoute: AggregatorQuote, slippage: string) {
-	// const web3 = new Web3();
-	// const originalMinAmount =
-	// 	betterRoute.tradeType === TradeType.ExactInput
-	// 		? web3.utils.toHex(
-	// 				divCeil(
-	// 					web3.utils
-	// 						.toBN(betterRoute.buyAmount)
-	// 						.mul(
-	// 							web3.utils
-	// 								.toBN(100000)
-	// 								.sub(
-	// 									web3.utils.toBN(
-	// 										new BigNumber(slippage)
-	// 											.multipliedBy(100000)
-	// 											.toString(),
-	// 									),
-	// 								),
-	// 						),
-	// 					web3.utils.toBN(100000),
-	// 				),
-	// 		  )
-	// 		: web3.utils.toHex(betterRoute.buyAmount);
-
 	const newMinAmount =
 		betterRoute.tradeType === TradeType.ExactInput
 			? divCeil2(
@@ -228,17 +181,12 @@ function getMinAmountFrom(betterRoute: AggregatorQuote, slippage: string) {
 }
 
 function getAdapterData(betterRoute: AggregatorQuote, slippage: string) {
-	// const web3 = new Web3();
 	const tokenFrom = betterRoute.sellTokenAddress;
 	const tokenTo = betterRoute.buyTokenAddress;
 	const amountFrom = getAmountFrom(betterRoute, slippage);
 	const minAmount = getMinAmountFrom(betterRoute, slippage);
 	const aggregator = betterRoute.to;
 	const aggregatorData = betterRoute.data;
-	// const adapterData = web3.eth.abi.encodeParameter(
-	// 	'tuple(address,address,uint256,uint256,address,bytes)',
-	// 	[tokenFrom, tokenTo, amountFrom, minAmount, aggregator, aggregatorData],
-	// );
 
 	const abiCoder = new ethers.utils.AbiCoder();
 	const adapterData2 = abiCoder.encode(
@@ -263,64 +211,11 @@ function getEncodedData(
 	slippage: string,
 	chainId: number,
 ) {
-	// const web3 = new Web3();
-
 	const tokenFrom = betterRoute.sellTokenAddress;
 	const amountFrom = getAmountFrom(betterRoute, slippage);
 
 	const adapterId = 'SwapAggregator'; // todo: revisit when deploying gasless
 	const adapterData: string = getAdapterData(betterRoute, slippage);
-
-	// const encodedData = web3.eth.abi.encodeFunctionCall(
-	// 	{
-	// 		name: 'swap',
-	// 		type: 'function',
-	// 		inputs: [
-	// 			{
-	// 				internalType: 'contract IERC20',
-	// 				name: 'tokenFrom',
-	// 				type: 'address',
-	// 			},
-	// 			{
-	// 				internalType: 'uint256',
-	// 				name: 'amount',
-	// 				type: 'uint256',
-	// 			},
-	// 			{
-	// 				internalType: 'address payable',
-	// 				name: 'recipient',
-	// 				type: 'address',
-	// 			},
-	// 			{
-	// 				components: [
-	// 					{
-	// 						internalType: 'string',
-	// 						name: 'adapterId',
-	// 						type: 'string',
-	// 					},
-	// 					{
-	// 						internalType: 'bytes',
-	// 						name: 'data',
-	// 						type: 'bytes',
-	// 					},
-	// 				],
-	// 				internalType: 'struct MetaSwapRouter.AdapterInfo',
-	// 				name: 'adapterInfo',
-	// 				type: 'tuple',
-	// 			},
-	// 		],
-	// 	},
-	// 	[
-	// 		tokenFrom,
-	// 		Web3.utils.toHex(amountFrom),
-	// 		betterRoute.recipient
-	// 			? betterRoute.recipient
-	// 			: '0x0000000000000000000000000000000000000001',
-	// 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// 		// @ts-ignore
-	// 		[adapterId, adapterData],
-	// 	],
-	// );
 
 	const swapInterface = new ethers.utils.Interface([
 		{
