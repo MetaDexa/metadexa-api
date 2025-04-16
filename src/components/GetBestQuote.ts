@@ -1,14 +1,15 @@
-import Web3 from 'web3';
 import { Ok, Err, Result } from 'ts-results';
 import BigNumber from 'bignumber.js';
+import { ethers } from 'ethers/lib';
 import { TransactionData } from '../interfaces/ResultQuote';
 import { RequestError } from '../interfaces/RequestError';
 import {
+	ALCHEMY_PROVIDER_URL,
+	ANKR_PROVIDER_URL,
+	INFURA_PROVIDER_URL,
 	METASWAP_ROUTER_CONTRACT_ADDRESS,
-	PROVIDER_ADDRESS,
 } from '../constants/addresses';
 import getZeroXQuote from './getZeroXQuote';
-import getOneInchQuote from './getOneInchQuote';
 import compareRoutes from './compareRoutes';
 import { AggregatorQuote, TradeType } from '../interfaces/AggregatorQuote';
 import { RequestQuote } from '../interfaces/RequestQuote';
@@ -17,13 +18,44 @@ import { divCeil } from './utils';
 import getOdosQuote from './getOdosQuote';
 import logger from '../lib/logger';
 
+async function etherFallbackProvider(chainId: number) {
+	const providers = [
+		{
+			provider: new ethers.providers.JsonRpcProvider(
+				INFURA_PROVIDER_URL[chainId],
+			),
+			weight: 3,
+			priority: 3,
+		},
+		{
+			provider: new ethers.providers.JsonRpcProvider(
+				ALCHEMY_PROVIDER_URL[chainId],
+			),
+			weight: 2,
+			priority: 2,
+		},
+		{
+			provider: new ethers.providers.JsonRpcProvider(
+				ANKR_PROVIDER_URL[chainId],
+			),
+			weight: 1,
+			priority: 1,
+		},
+	];
+
+	return new ethers.providers.FallbackProvider(providers, 1);
+}
 async function getGasPrice(chainId: number): Promise<Result<string, Error>> {
-	const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
+	const provider = await etherFallbackProvider(chainId);
 	try {
-		const gasPrice = await web3.eth.getGasPrice();
-		return new Ok(gasPrice);
+		const gasPrice = await provider.getGasPrice();
+		return new Ok(gasPrice.toString());
 	} catch (error) {
-		return new Err(new Error(`Gas price failed: ${error.message}`));
+		return new Err(
+			new Error(
+				`GetBestQuote: Fetching gas price failed: ${error.message}`,
+			),
+		);
 	}
 }
 
@@ -34,21 +66,36 @@ async function estimateGas(
 	chainId: number,
 	data: string,
 ): Promise<Result<number, Error>> {
-	const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
+	const ethersProvider = await etherFallbackProvider(chainId);
+	const latestBlockNumber = await ethersProvider.getBlockNumber();
+	const block = await ethersProvider.getBlock(latestBlockNumber);
+	const tx = {
+		from,
+		to,
+		data,
+		value,
+		gasLimit: block.gasLimit,
+	};
 	try {
-		const estimate = await web3.eth.estimateGas({
-			to,
+		const gas = await ethersProvider.estimateGas({
 			from,
+			to,
 			data,
 			value,
+			gasLimit: block.gasLimit,
 		});
-
-		return new Ok(estimate);
+		return new Ok(Number(gas.toString()));
 	} catch (error) {
-		return new Err(new Error(`Gas estimation error: ${error.message}`));
+		// await ethersProvider
+		// 	.call(tx)
+		// 	.catch((e) => console.log('Revert:', e.reason));
+		return new Err(
+			new Error(`GetBestQuote: Gas estimation error: ${error.message}`),
+		);
 	}
 }
 
+// dont bother, we have router everywhere
 async function getRouterlessTransactionData(
 	betterRoute: AggregatorQuote,
 	slippage: string,
@@ -80,72 +127,101 @@ async function getRouterlessTransactionData(
 	return new Ok(result);
 }
 
-async function getTransactionData(
+export function divCeil2(
+	divider: ethers.BigNumber,
+	divisor: ethers.BigNumber,
+): ethers.BigNumber {
+	const div = divider.div(divisor);
+	const mod = divider.mod(divisor);
+
+	// Fast case - exact division
+	if (mod.isZero()) return div;
+
+	// Round up
+	return div.isNegative() ? div.sub(1) : div.add(1);
+}
+
+function getAmountFrom(betterRoute: AggregatorQuote, slippage: string) {
+	const newAmountFrom =
+		betterRoute.tradeType === TradeType.ExactInput
+			? ethers.BigNumber.from(betterRoute.sellAmount).toHexString() // Convert to BigNumber first, then to hex
+			: divCeil2(
+					ethers.BigNumber.from(betterRoute.sellAmount).mul(
+						ethers.BigNumber.from(100000).add(
+							ethers.BigNumber.from(
+								new BigNumber(slippage)
+									.multipliedBy(100000)
+									.toString(),
+							),
+						),
+					),
+					ethers.BigNumber.from(100000),
+			  ).toHexString(); // Convert the final BigNumber to hex string
+	return newAmountFrom;
+}
+
+function getMinAmountFrom(betterRoute: AggregatorQuote, slippage: string) {
+	const newMinAmount =
+		betterRoute.tradeType === TradeType.ExactInput
+			? divCeil2(
+					ethers.BigNumber.from(betterRoute.buyAmount).mul(
+						ethers.BigNumber.from(100000).sub(
+							ethers.BigNumber.from(
+								new BigNumber(slippage)
+									.multipliedBy(100000)
+									.toString(),
+							),
+						),
+					),
+					ethers.BigNumber.from(100000),
+			  ).toHexString()
+			: ethers.BigNumber.from(betterRoute.buyAmount).toHexString();
+
+	return newMinAmount;
+}
+
+function getAdapterData(betterRoute: AggregatorQuote, slippage: string) {
+	const tokenFrom = betterRoute.sellTokenAddress;
+	const tokenTo = betterRoute.buyTokenAddress;
+	const amountFrom = getAmountFrom(betterRoute, slippage);
+	const minAmount = getMinAmountFrom(betterRoute, slippage);
+	const aggregator = betterRoute.to;
+	const aggregatorData = betterRoute.data;
+
+	const abiCoder = new ethers.utils.AbiCoder();
+	const adapterData2 = abiCoder.encode(
+		['tuple(address,address,uint256,uint256,address,bytes)'],
+		[
+			[
+				tokenFrom,
+				tokenTo,
+				amountFrom,
+				minAmount,
+				aggregator,
+				aggregatorData,
+			],
+		],
+	);
+
+	return adapterData2;
+}
+
+function getEncodedData(
 	betterRoute: AggregatorQuote,
 	slippage: string,
 	chainId: number,
-): Promise<Result<TransactionData, RequestError>> {
-	const web3 = new Web3();
-
+) {
 	const tokenFrom = betterRoute.sellTokenAddress;
-	const tokenTo = betterRoute.buyTokenAddress;
-	const amountFrom =
-		betterRoute.tradeType === TradeType.ExactInput
-			? web3.utils.toHex(betterRoute.sellAmount)
-			: web3.utils.toHex(
-					divCeil(
-						web3.utils
-							.toBN(betterRoute.sellAmount)
-							.mul(
-								web3.utils
-									.toBN(100000)
-									.add(
-										web3.utils.toBN(
-											new BigNumber(slippage)
-												.multipliedBy(100000)
-												.toString(),
-										),
-									),
-							),
-						web3.utils.toBN(100000),
-					),
-			  );
+	const amountFrom = getAmountFrom(betterRoute, slippage);
 
-	const minAmount =
-		betterRoute.tradeType === TradeType.ExactInput
-			? web3.utils.toHex(
-					divCeil(
-						web3.utils
-							.toBN(betterRoute.buyAmount)
-							.mul(
-								web3.utils
-									.toBN(100000)
-									.sub(
-										web3.utils.toBN(
-											new BigNumber(slippage)
-												.multipliedBy(100000)
-												.toString(),
-										),
-									),
-							),
-						web3.utils.toBN(100000),
-					),
-			  )
-			: web3.utils.toHex(betterRoute.buyAmount);
+	const adapterId = 'SwapAggregator'; // todo: revisit when deploying gasless
+	const adapterData: string = getAdapterData(betterRoute, slippage);
 
-	const aggregator = betterRoute.to;
-
-	const aggregatorData = betterRoute.data;
-	const adapterId = 'SwapAggregator';
-	const adapterData: string = web3.eth.abi.encodeParameter(
-		'tuple(address,address,uint256,uint256,address,bytes)',
-		[tokenFrom, tokenTo, amountFrom, minAmount, aggregator, aggregatorData],
-	);
-
-	const encodedData = web3.eth.abi.encodeFunctionCall(
+	const swapInterface = new ethers.utils.Interface([
 		{
 			name: 'swap',
 			type: 'function',
+			stateMutability: 'payable',
 			inputs: [
 				{
 					internalType: 'contract IERC20',
@@ -180,18 +256,26 @@ async function getTransactionData(
 					type: 'tuple',
 				},
 			],
+			outputs: [],
 		},
-		[
-			tokenFrom,
-			Web3.utils.toHex(amountFrom),
-			betterRoute.recipient
-				? betterRoute.recipient
-				: '0x0000000000000000000000000000000000000001',
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			[adapterId, adapterData],
-		],
-	);
+	]);
+
+	const encodedData2 = swapInterface.encodeFunctionData('swap', [
+		tokenFrom,
+		amountFrom, // amountFrom should already be in hex from previous conversion
+		betterRoute.recipient || '0x0000000000000000000000000000000000000001',
+		[adapterId, adapterData],
+	]);
+
+	return encodedData2;
+}
+
+async function getTransactionData(
+	betterRoute: AggregatorQuote,
+	slippage: string,
+	chainId: number,
+): Promise<Result<TransactionData, RequestError>> {
+	const encodedData = getEncodedData(betterRoute, slippage, chainId);
 
 	// TODO build multicall when permit is included
 	// TODO; can be paralilized
@@ -260,7 +344,7 @@ export default async function getBestQuote(
 	const [zeroXQuote, odosQuote] = await Promise.all([
 		getZeroXQuote(request),
 		getOdosQuote(request),
-		//getOneInchQuote(request, request.skipValidation),
+		// getOneInchQuote(request, request.skipValidation),
 	]);
 
 	const aggregatorQuotes: Result<AggregatorQuote, RequestError>[] = [

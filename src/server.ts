@@ -29,9 +29,6 @@ app.init().then(() => {
     server = app.httpServer; // http.createServer(App);
     server.on('error', serverError);
     server.on('listening', serverListening);
-    server.on('request' , (req, res) => {
-        logger.info(`${res.statusCode} - ${req.url} ${res.statusMessage ?? ''}`);
-    });
     server.listen(env.port);
 }).catch((err: Error) => {
     logger.info('app.init error');

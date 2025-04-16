@@ -1,9 +1,19 @@
 // eslint-disable-next-line import/prefer-default-export
+import { arbitrum, base, mainnet, optimism, polygon } from 'viem/chains';
+
 export const GAS_OVERHEAD = '130000';
 
 export const GAS_MARGIN = 95;
 
 export const QUOTE_REQUEST_TIMEOUT = 10000;
+
+export const SUPPORTED_CHAINS = {
+	1: mainnet,
+	8453: base,
+	137: polygon,
+	42161: arbitrum,
+	10: optimism
+}
 
 export const FREE_SWAPS_CAMPAIGN = {
 	137: true,

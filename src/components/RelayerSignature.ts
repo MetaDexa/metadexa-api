@@ -1,7 +1,7 @@
 import { Err, Ok, Result } from 'ts-results';
-import Web3 from 'web3';
+import { keccak256, encodePacked, getAddress } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { RequestError } from '../interfaces/RequestError';
-import { PROVIDER_ADDRESS } from '../constants/addresses';
 import { ForwarderRequest } from '../interfaces/ForwarderRequest';
 
 export default async function validatorSign(
@@ -11,27 +11,48 @@ export default async function validatorSign(
 	forwarderAddress: string,
 ): Promise<Result<string, RequestError>> {
 	try {
-		const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
-
-		const hashMessage = web3.utils.soliditySha3(
-			{ t: 'uint256', v: chainId },
-			{ t: 'address', v: from },
-			{ t: 'address', v: forwarderAddress },
-			{ t: 'address', v: forwardRequest.signer },
-			{ t: 'address', v: forwardRequest.paymentToken },
-			{ t: 'uint256', v: forwardRequest.paymentFees },
-			{ t: 'uint256', v: forwardRequest.tokenGasPrice },
-			{ t: 'uint256', v: forwardRequest.validTo },
-			{ t: 'uint256', v: forwardRequest.nonce },
-			{ t: 'address', v: forwardRequest.metaswap },
-			{ t: 'bytes', v: forwardRequest.calldata },
+		const account = privateKeyToAccount(
+			`0x${environment.relayerSecretKey}`,
 		);
 
-		const sigObj = await web3.eth.accounts.sign(
-			hashMessage,
-			environment.relayerSecretKey,
+		// Create the hash message using viem's encodePacked and keccak256
+		const hashData = encodePacked(
+			[
+				'uint256',
+				'address',
+				'address',
+				'address',
+				'address',
+				'uint256',
+				'uint256',
+				'uint256',
+				'uint256',
+				'address',
+				'bytes',
+			],
+			[
+				BigInt(chainId),
+				getAddress(from),
+				getAddress(forwarderAddress),
+				getAddress(forwardRequest.signer),
+				getAddress(forwardRequest.paymentToken),
+				BigInt(forwardRequest.paymentFees),
+				BigInt(forwardRequest.tokenGasPrice),
+				BigInt(forwardRequest.validTo),
+				BigInt(forwardRequest.nonce),
+				getAddress(forwardRequest.metaswap),
+				forwardRequest.calldata as `0x${string}`,
+			],
 		);
-		return new Ok(sigObj.signature);
+
+		const messageHash = keccak256(hashData);
+
+		// Sign the message
+		const signature = await account.signMessage({
+			message: { raw: messageHash },
+		});
+
+		return new Ok(signature);
 	} catch (error) {
 		return new Err({
 			statusCode: 500,
@@ -40,10 +61,7 @@ export default async function validatorSign(
 	}
 }
 
-export async function getSigner(chainId: number): Promise<string> {
-	const web3 = new Web3(Web3.givenProvider || PROVIDER_ADDRESS[chainId]);
-	const myAccount = web3.eth.accounts.privateKeyToAccount(
-		environment.relayerSecretKey,
-	);
-	return myAccount.address;
+export async function getSigner(): Promise<string> {
+	const account = privateKeyToAccount(`0x${environment.relayerSecretKey}`);
+	return account.address;
 }

@@ -1,0 +1,72 @@
+todo:
+    - getBestQuote (ima dosta BN matematika, ne e strasno)
+    - utils (go ima dosta)
+
+Note: You can replace BN with bignumber.js and it will work just fine. Thanks codeium for the tip :)
+
+GetTransactionData()
+1. extract all data from better route (tokenFrom, tokenTo
+amountFrom, amountTo, route, gasPrice, gasLimit)
+2. gi pakuva i enkodira za gasless call
+3. pravi simulacija dali kje projde toj call
+4. zema gas price
+5. ja vrakja txn (spremna za izvrsuvanje na front end)
+
+
+Summarization:
+    - BE fakticki samo spakuva transakcija koja
+    kje se izvrsi na front-end
+
+Structura na call:
+    - txn:
+        - txn2: swap aggregator call
+
+
+Prasanje:
+    - dali viem moze da ja koristi istata data ?
+        - mislam da
+
+==========================================================================================
+
+GetBestQuote():
+    - go ima nekolku pati pri BN matematika, ne e strasno
+
+utils.ts:
+    - go ima dosta
+
+Done:
+    GetGaslessQuote():
+        - ima nekoja BN matematika, ne e strasno
+
+    - RelayerSignature.ts:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
