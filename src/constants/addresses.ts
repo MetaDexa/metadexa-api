@@ -49,11 +49,23 @@ export const ONEINCH_AGGREGATOR_ADDRESS: AddressMap = {
 	[SupportedChainId.BASE]: '0x8F42F726e9222DbBd8958D006aa88F1d2D8e6D91',
 };
 
-export const ZEROX_AGGREGATOR_ADDRESS: AddressMap = {
-	[SupportedChainId.POLYGON]: '0xDef1C0ded9bec7F1a1670819833240f027b25EfF',
-	[SupportedChainId.OPTIMISM]: '0xdef1abe32c034e558cdd535791643c58a13acc10',
-	[SupportedChainId.MAINNET]: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
-	[SupportedChainId.BASE]: '0x8F42F726e9222DbBd8958D006aa88F1d2D8e6D91',
+// See https://0x.org/docs/introduction/0x-cheat-sheet#allowanceholder-contract
+export const ZEROX_ALLOWANCE_HOLDER_CONTRACT: AddressMap = {
+	[SupportedChainId.MAINNET]: '0x0000000000001fF3684f28c67538d4D072C22734',
+	[SupportedChainId.POLYGON]: '0x0000000000001fF3684f28c67538d4D072C22734',
+	[SupportedChainId.OPTIMISM]: '0x0000000000001fF3684f28c67538d4D072C22734',
+	[SupportedChainId.ARBITRUM_ONE]:
+		'0x0000000000001fF3684f28c67538d4D072C22734',
+	[SupportedChainId.BASE]: '0x0000000000001fF3684f28c67538d4D072C22734',
+};
+
+export const ZEROX_PERMIT2_CONTRACT: AddressMap = {
+	[SupportedChainId.MAINNET]: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
+	[SupportedChainId.POLYGON]: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
+	[SupportedChainId.OPTIMISM]: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
+	[SupportedChainId.ARBITRUM_ONE]:
+		'0x000000000022D473030F116dDEE9F6B43aC78BA3',
+	[SupportedChainId.BASE]: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
 };
 
 // See https://docs.odos.xyz/product/sor/v2/#deployments
@@ -76,11 +88,14 @@ export const ODOS_AGGREGATOR_ADDRESS: AddressMap = {
 };
 
 export const PROVIDER_ADDRESS: AddressMap = {
-	[SupportedChainId.POLYGON]: 'https://rpc.ankr.com/polygon/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.POLYGON]:
+		'https://rpc.ankr.com/polygon/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
 	[SupportedChainId.ARBITRUM_ONE]:
 		'https://rpc.ankr.com/arbitrum/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
 	[SupportedChainId.MAINNET]:
 		'https://rpc.ankr.com/eth/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
-	[SupportedChainId.OPTIMISM]: 'https://rpc.ankr.com/optimism/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
-	[SupportedChainId.BASE]: 'https://rpc.ankr.com/base/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.OPTIMISM]:
+		'https://rpc.ankr.com/optimism/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
+	[SupportedChainId.BASE]:
+		'https://rpc.ankr.com/base/3447c266673af57685b798ee810755b73450b3e97749a600f88473bdf1678f64',
 };
