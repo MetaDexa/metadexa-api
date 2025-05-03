@@ -40,6 +40,7 @@ export default class App {
 			this.getGaslessRoute,
 		);
 		this.express.get('/web', this.parseRequestHeader, this.basePathRoute);
+		this.express.get('/healthcheck', this.healthcheck);
 		registerRoutes(this.express);
 	}
 
@@ -79,6 +80,14 @@ export default class App {
 	): void {
 		response.sendFile('./index.html');
 	}
+
+	private healthcheck(
+		request: express.Request,
+		response: express.Response,
+	): void {
+		response.status(200).send({ message: 'Server is up and running'});
+	}
+
 
 	private async getSwapRoute(
 		request: express.Request,
