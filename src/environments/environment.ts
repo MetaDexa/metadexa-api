@@ -16,6 +16,8 @@ class Environment implements IEnvironment {
 
 	public relayerSecretKey: string;
 
+	public odosReferralID: string;
+
 	constructor(NODE_ENV?: string) {
 		const env: string =
 			NODE_ENV || process.env.NODE_ENV || Environments.DEV;
@@ -26,6 +28,7 @@ class Environment implements IEnvironment {
 		this.secretKey = process.env.SECRET_KEY;
 		this.relayerApiKey = process.env.API_KEY;
 		this.relayerSecretKey = process.env.API_SECRET;
+		this.odosReferralID = process.env.ODOS_REFERRAL_ID;
 	}
 
 	public getCurrentEnvironment(): string {
